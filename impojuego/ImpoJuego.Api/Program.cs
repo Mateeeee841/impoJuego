@@ -27,7 +27,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "ImpoJuego API", Version = "v1" });
 });
 
-// CORS para Angular (localhost:4200)
+// CORS para Angular (localhost y producción)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
@@ -35,7 +35,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:4200",
                 "http://localhost:5173",  // Vite
-                "http://127.0.0.1:4200"
+                "http://127.0.0.1:4200",
+                "https://impojuego-web.onrender.com"  // Producción Render
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
