@@ -12,12 +12,14 @@ import {
   GameEnd,
   Category
 } from '../models';
+import { CONFIG } from '../../app/app.config'
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameService {
-  private readonly apiUrl = 'http://localhost:5000/api/game';
+  //private readonly apiUrl = 'http://localhost:5000/api/game';
+  private readonly apiUrl = CONFIG.apiUrl;
 
   constructor(private http: HttpClient) {}
 

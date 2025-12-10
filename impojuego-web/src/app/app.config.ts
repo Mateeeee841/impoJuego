@@ -10,3 +10,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient()
   ]
 };
+export const CONFIG = {
+  apiUrl: 'https://impojuego-1.onrender.com/api/game'
+  //'http://localhost:5000/api/game para correr local
+}; 
