@@ -1,0 +1,182 @@
+<div class="voting-container page-enter">
+  <!-- Error -->
+  @if (error) {
+    <div class="error-alert">
+      <span class="error-icon">!</span>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  @if (gameState && !roundResult) {
+    <!-- Voting Header -->
+    <div class="voting-header impostor-card card-enter">
+      <div class="emergency-badge">
+        <div class="emergency-light-animated"></div>
+        <span class="font-orbitron">EMERGENCIA</span>
+      </div>
+      <div class="header-content">
+        <h1 class="neon-title neon-red" style="font-size: 1.5rem">Votación</h1>
+        <p class="subtitle">Ronda {{ gameState.roundNumber }} - Elige al sospechoso</p>
+      </div>
+    </div>
+
+    <!-- Current Voter -->
+    @if (currentVoter && !votingComplete) {
+      <div class="voter-section card-enter" style="animation-delay: 0.1s">
+        <div class="voter-turn impostor-card">
+          <div class="voter-info">
+            <div class="voter-avatar">
+              <span class="visor"></span>
+            </div>
+            <div class="voter-details">
+              <span class="turn-label">Turno de votar</span>
+              <h2 class="voter-name font-oxanium">{{ currentVoter.name }}</h2>
+            </div>
+          </div>
+          <div class="progress-indicator">
+            <span class="current">{{ currentVoterIndex + 1 }}</span>
+            <span class="separator">/</span>
+            <span class="total">{{ gameState.activePlayers.length }}</span>
+          </div>
+        </div>
+
+        <div class="vote-options">
+          <h3 class="font-orbitron">
+            <span class="target-icon"></span>
+            Selecciona al Sospechoso
+          </h3>
+
+          <div class="suspects-grid">
+            @for (player of gameState.activePlayers; track player.name; let i = $index) {
+              @if (player.name !== currentVoter.name) {
+                <button
+                  class="suspect-btn card-enter"
+                  [style.animation-delay]="(i * 0.05) + 's'"
+                  (click)="castVote(player.name)"
+                  [disabled]="loading"
+                >
+                  <div class="suspect-avatar">
+                    <span class="visor-small"></span>
+                  </div>
+                  <span class="suspect-name">{{ player.name }}</span>
+                  <div class="vote-overlay">
+                    <span class="vote-text">VOTAR</span>
+                  </div>
+                </button>
+              }
+            }
+          </div>
+
+          <button
+            class="skip-btn impostor-btn-secondary"
+            (click)="castVote(null)"
+            [disabled]="loading"
+          >
+            <span class="skip-icon"></span>
+            Skip - No Votar
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Counting votes -->
+    @if (loading && votingComplete) {
+      <div class="counting-section">
+        <div class="impostor-loader"></div>
+        <h2 class="font-orbitron neon-title" style="font-size: 1.2rem; margin-top: 1.5rem">
+          Contando Votos...
+        </h2>
+        <p class="counting-subtitle">El destino de la tripulación se decide</p>
+      </div>
+    }
+  }
+
+  <!-- Voting Result -->
+  @if (roundResult) {
+    <div class="result-section card-enter">
+      <div class="result-header">
+        <h1 class="neon-title" style="font-size: 1.8rem">Resultado</h1>
+      </div>
+
+      <!-- Vote Summary -->
+      <div class="vote-summary impostor-card">
+        <h3 class="font-orbitron">
+          <span class="tally-icon"></span>
+          Recuento de Votos
+        </h3>
+
+        <div class="vote-bars">
+          @for (entry of roundResult.voteResult.voteCounts | keyvalue; track entry.key) {
+            <div class="vote-bar-item">
+              <div class="bar-info">
+                <span class="player-name">{{ entry.key }}</span>
+                <span class="vote-count">{{ entry.value }}</span>
+              </div>
+              <div class="bar-container">
+                <div
+                  class="bar-fill"
+                  [style.width]="getVotePercentage(entry.value) + '%'"
+                ></div>
+              </div>
+            </div>
+          }
+
+          @if (roundResult.voteResult.skipVotes > 0) {
+            <div class="vote-bar-item skip">
+              <div class="bar-info">
+                <span class="player-name">Skip</span>
+                <span class="vote-count">{{ roundResult.voteResult.skipVotes }}</span>
+              </div>
+              <div class="bar-container">
+                <div
+                  class="bar-fill skip"
+                  [style.width]="getVotePercentage(roundResult.voteResult.skipVotes) + '%'"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Outcome -->
+      <div
+        class="outcome-card impostor-card"
+        [class.eliminated]="roundResult.voteResult.eliminatedPlayer"
+        [class.safe]="!roundResult.voteResult.eliminatedPlayer"
+      >
+        @if (roundResult.voteResult.wasTie) {
+          <div class="outcome-icon tie-icon"></div>
+          <h2 class="outcome-title font-orbitron">Empate</h2>
+          <p class="outcome-description">Nadie es expulsado de la nave</p>
+        } @else if (roundResult.voteResult.eliminatedPlayer) {
+          <div class="outcome-icon ejected-icon">
+            <div class="ejected-body"></div>
+          </div>
+          <h2 class="outcome-title font-orbitron neon-red">Expulsado</h2>
+          <p class="eliminated-name">{{ roundResult.voteResult.eliminatedPlayer }}</p>
+          <p class="outcome-description">fue lanzado al espacio</p>
+        } @else {
+          <div class="outcome-icon skip-result-icon"></div>
+          <h2 class="outcome-title font-orbitron">Sin Expulsión</h2>
+          <p class="outcome-description">La mayoría votó skip</p>
+        }
+      </div>
+
+      <!-- Message -->
+      <div class="result-message">
+        <p>{{ roundResult.message }}</p>
+      </div>
+
+      <!-- Continue Button -->
+      <button class="impostor-btn continue-btn" (click)="continueGame()">
+        @if (roundResult.gameStatus === 'InProgress') {
+          <span class="next-icon"></span>
+          Siguiente Ronda
+        } @else {
+          <span class="trophy-icon"></span>
+          Ver Resultado Final
+        }
+      </button>
+    </div>
+  }
+</div>

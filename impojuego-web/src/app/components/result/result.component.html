@@ -1,0 +1,116 @@
+<div class="result-container page-enter">
+  <!-- Error -->
+  @if (error) {
+    <div class="error-alert">
+      <span class="error-icon">!</span>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  @if (result) {
+    <!-- Winner Section -->
+    <div
+      class="winner-section card-enter"
+      [class.crewmates]="result.winner === 'Crewmates'"
+      [class.impostors]="result.winner === 'Impostores'"
+    >
+      <div class="winner-glow"></div>
+
+      <div class="winner-icon-container">
+        @if (result.winner === 'Crewmates') {
+          <div class="winner-icon crewmate-icon">
+            <div class="visor"></div>
+          </div>
+        } @else {
+          <div class="winner-icon impostor-icon">
+            <div class="knife"></div>
+          </div>
+        }
+      </div>
+
+      <h1 class="winner-title font-orbitron">
+        @if (result.winner === 'Crewmates') {
+          <span class="glitch-text neon-title" data-text="CREWMATES">CREWMATES</span>
+        } @else {
+          <span class="glitch-text neon-red" data-text="IMPOSTORES">IMPOSTORES</span>
+        }
+      </h1>
+
+      <h2 class="victory-text font-oxanium">
+        @if (result.winner === 'Crewmates') {
+          La tripulación sobrevivió
+        } @else {
+          Han tomado la nave
+        }
+      </h2>
+    </div>
+
+    <!-- Details Section -->
+    <div class="details-section card-enter" style="animation-delay: 0.2s">
+      <!-- Secret Word -->
+      <div class="detail-card impostor-card word-card">
+        <div class="card-header">
+          <span class="card-icon word-icon"></span>
+          <h3 class="font-orbitron">Palabra Secreta</h3>
+        </div>
+        <div class="secret-word glitch-text" [attr.data-text]="result.secretWord">
+          {{ result.secretWord }}
+        </div>
+      </div>
+
+      <!-- Impostors Reveal -->
+      <div class="detail-card impostor-card impostor-reveal-card">
+        <div class="card-header">
+          <span class="card-icon skull-icon"></span>
+          <h3 class="font-orbitron">
+            {{ result.impostors.length > 1 ? 'Los Impostores eran' : 'El Impostor era' }}
+          </h3>
+        </div>
+        <div class="impostors-list">
+          @for (impostor of result.impostors; track impostor; let i = $index) {
+            <div class="impostor-reveal-item" [style.animation-delay]="(0.3 + i * 0.1) + 's'">
+              <div class="impostor-avatar">
+                <div class="impostor-visor"></div>
+              </div>
+              <span class="impostor-name">{{ impostor }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-section card-enter" style="animation-delay: 0.4s">
+      <button
+        class="impostor-btn play-again-btn"
+        (click)="playAgain()"
+        [disabled]="loading"
+      >
+        <span class="replay-icon"></span>
+        @if (loading) {
+          Reiniciando...
+        } @else {
+          Jugar de Nuevo
+        }
+      </button>
+
+      <button
+        class="impostor-btn-secondary new-game-btn"
+        (click)="newGame()"
+        [disabled]="loading"
+      >
+        <span class="new-icon"></span>
+        Nueva Partida
+      </button>
+
+      <p class="action-hint">
+        "Jugar de Nuevo" mantiene los jugadores. "Nueva Partida" reinicia todo.
+      </p>
+    </div>
+  } @else if (!error) {
+    <div class="loading-state">
+      <div class="impostor-loader"></div>
+      <p class="font-oxanium">Calculando resultado final...</p>
+    </div>
+  }
+</div>

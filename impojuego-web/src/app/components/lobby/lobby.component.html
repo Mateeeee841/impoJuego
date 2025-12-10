@@ -1,0 +1,130 @@
+<div class="lobby-container page-enter">
+  <!-- Header -->
+  <div class="lobby-header">
+    <h1 class="neon-title glitch-text" data-text="IMPOJUEGO">IMPOJUEGO</h1>
+    <p class="subtitle font-oxanium">Encuentra al impostor entre nosotros</p>
+  </div>
+
+  <!-- Error message -->
+  @if (error) {
+    <div class="error-alert card-enter">
+      <span class="error-icon">!</span>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  <!-- Add player section -->
+  <div class="add-player-section impostor-card card-enter">
+    <h2 class="section-title font-orbitron">
+      <span class="icon">+</span>
+      Unirse a la Nave
+    </h2>
+
+    <div class="input-group">
+      <input
+        type="text"
+        class="impostor-input"
+        [(ngModel)]="newPlayerName"
+        placeholder="Ingresa tu nombre..."
+        (keyup.enter)="addPlayer()"
+        [disabled]="loading"
+        maxlength="20"
+      />
+      <button
+        class="impostor-btn"
+        (click)="addPlayer()"
+        [disabled]="loading || !newPlayerName.trim()"
+      >
+        @if (loading) {
+          <span class="loading-dots">...</span>
+        } @else {
+          Unirse
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Players list -->
+  @if (lobby) {
+    <div class="players-section impostor-card card-enter" style="animation-delay: 0.1s">
+      <h2 class="section-title font-orbitron">
+        <span class="icon crew-icon"></span>
+        Tripulación
+        <span class="player-count">{{ lobby.players.length }}/{{ lobby.maxPlayers }}</span>
+      </h2>
+
+      @if (lobby.players.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon"></div>
+          <p>La nave está vacía...</p>
+          <p class="hint">Esperando tripulantes</p>
+        </div>
+      } @else {
+        <ul class="player-list">
+          @for (player of lobby.players; track player.name; let i = $index) {
+            <li class="player-item hologram-hover" [style.animation-delay]="(i * 0.05) + 's'">
+              <div class="player-avatar">
+                <span class="avatar-inner"></span>
+              </div>
+              <span class="player-name">{{ player.name }}</span>
+              <button
+                class="remove-btn emergency-light"
+                (click)="removePlayer(player.name)"
+                title="Expulsar"
+              >
+                <span class="x-icon">X</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="status-bar">
+        @if (lobby.players.length < lobby.minPlayers) {
+          <div class="status warning">
+            <span class="pulse-dot"></span>
+            Faltan {{ lobby.minPlayers - lobby.players.length }} tripulantes para despegar
+          </div>
+        } @else {
+          <div class="status ready">
+            <span class="pulse-dot green"></span>
+            Nave lista para despegar
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Game info -->
+    <div class="info-section impostor-card card-enter" style="animation-delay: 0.2s">
+      <div class="info-item">
+        <span class="info-icon warning-icon"></span>
+        <span>Los impostores se asignan al azar</span>
+      </div>
+      <div class="info-item subtle">
+        <span class="info-icon stats-icon"></span>
+        <span>5+ jugadores: 4% probabilidad de 2 impostores</span>
+      </div>
+    </div>
+
+    <!-- Start button -->
+    <button
+      class="start-btn impostor-btn"
+      [class.ready]="lobby.canStart"
+      (click)="startGame()"
+      [disabled]="!lobby.canStart || loading"
+    >
+      @if (loading) {
+        <span class="impostor-loader-inline"></span>
+        <span>Iniciando sistemas...</span>
+      } @else {
+        <span class="btn-icon"></span>
+        <span>Iniciar Misión</span>
+      }
+    </button>
+  } @else {
+    <div class="loading-state">
+      <div class="impostor-loader"></div>
+      <p class="font-oxanium">Conectando con la nave...</p>
+    </div>
+  }
+</div>

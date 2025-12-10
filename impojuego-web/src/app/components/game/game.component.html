@@ -1,0 +1,209 @@
+<div class="game-container page-enter">
+  <!-- Error -->
+  @if (error) {
+    <div class="error-alert">
+      <span class="error-icon">!</span>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  @if (gameState) {
+    <!-- Game Header -->
+    <div class="game-header impostor-card card-enter">
+      <div class="round-badge">
+        <span class="round-label">Ronda</span>
+        <span class="round-number">{{ gameState.roundNumber }}</span>
+      </div>
+      <div class="header-info">
+        <div class="category-display">
+          <span class="label">Categoría</span>
+          <span class="value neon-title" style="font-size: 1.2rem">{{ gameState.category }}</span>
+        </div>
+        <div class="impostor-count">
+          <span class="skull-icon"></span>
+          <span>{{ gameState.impostorCount }} Impostor{{ gameState.impostorCount > 1 ? 'es' : '' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role Reveal Phase -->
+    @if (gameState.phase === 'RoleReveal' && !showRole) {
+      <div class="reveal-section card-enter" style="animation-delay: 0.1s">
+        <div class="section-header">
+          <div class="visor-icon"></div>
+          <h2 class="font-orbitron">Descubre tu Rol</h2>
+        </div>
+
+        <p class="instruction">
+          Cada tripulante ingresa su nombre para revelar su identidad secreta
+        </p>
+
+        <div class="player-input-group">
+          <input
+            type="text"
+            class="impostor-input"
+            [(ngModel)]="currentPlayerName"
+            placeholder="Ingresa tu nombre..."
+            (keyup.enter)="revealRole()"
+            [disabled]="loading"
+          />
+          <button
+            class="impostor-btn"
+            (click)="revealRole()"
+            [disabled]="loading || !currentPlayerName.trim()"
+          >
+            @if (loading) {
+              <span class="loader-inline"></span>
+            } @else {
+              Revelar Rol
+            }
+          </button>
+        </div>
+
+        <!-- Progress tracker -->
+        <div class="reveal-progress impostor-card" style="margin-top: 1.5rem">
+          <div class="progress-header">
+            <span>Roles revelados</span>
+            <span class="count">{{ playersRevealed.size }}/{{ gameState.activePlayers.length }}</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width]="(playersRevealed.size / gameState.activePlayers.length * 100) + '%'"
+            ></div>
+          </div>
+          <div class="players-chips">
+            @for (player of gameState.activePlayers; track player.name) {
+              <span
+                class="chip"
+                [class.revealed]="playersRevealed.has(player.name.toLowerCase())"
+              >
+                <span class="chip-avatar"></span>
+                {{ player.name }}
+              </span>
+            }
+          </div>
+        </div>
+
+        @if (allPlayersRevealed) {
+          <button class="impostor-btn action-btn ready-btn" (click)="startDiscussion()">
+            <span class="check-icon"></span>
+            Todos Listos - Comenzar Discusión
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Role Reveal Modal -->
+    @if (showRole && revealedRole) {
+      <div class="role-modal-overlay" (click)="hideRole()">
+        <div
+          class="role-modal card-enter"
+          [class.impostor]="revealedRole.role === 'Impostor'"
+          [class.crewmate]="revealedRole.role === 'Crewmate'"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="modal-glow"></div>
+
+          <h2 class="player-name font-oxanium">{{ revealedRole.playerName }}</h2>
+
+          @if (revealedRole.role === 'Impostor') {
+            <div class="role-reveal-content impostor">
+              <div class="role-icon impostor-icon">
+                <div class="knife-icon"></div>
+              </div>
+              <div class="role-badge neon-red">IMPOSTOR</div>
+              <p class="role-description">
+                No conocés la palabra secreta. <strong>¡Improvisá!</strong>
+              </p>
+              <div class="category-hint">
+                <span class="label">Categoría:</span>
+                <span class="value">{{ revealedRole.category }}</span>
+              </div>
+
+              @if (revealedRole.fellowImpostors && revealedRole.fellowImpostors.length > 0) {
+                <div class="fellow-impostors">
+                  <span class="label">Tu cómplice:</span>
+                  <div class="fellow-list">
+                    @for (fellow of revealedRole.fellowImpostors; track fellow) {
+                      <span class="fellow-name">{{ fellow }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="role-reveal-content crewmate">
+              <div class="role-icon crewmate-icon">
+                <div class="visor"></div>
+              </div>
+              <div class="role-badge neon-title" style="font-size: 1.5rem">CREWMATE</div>
+              <div class="secret-word-container">
+                <span class="label">La palabra secreta es:</span>
+                <div class="secret-word glitch-text" [attr.data-text]="revealedRole.secretWord">
+                  {{ revealedRole.secretWord }}
+                </div>
+              </div>
+              <p class="role-description">
+                Da pistas sutiles <strong>sin revelar</strong> la palabra exacta
+              </p>
+            </div>
+          }
+
+          <button class="impostor-btn hide-btn" (click)="hideRole()">
+            Ocultar y Pasar al Siguiente
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Discussion Phase -->
+    @if (gameState.phase === 'Discussion') {
+      <div class="discussion-section card-enter" style="animation-delay: 0.1s">
+        <div class="section-header">
+          <div class="discussion-icon"></div>
+          <h2 class="font-orbitron">Fase de Discusión</h2>
+        </div>
+
+        <div class="discussion-rules impostor-card">
+          <div class="rule">
+            <span class="rule-number">1</span>
+            <span>Cada jugador dice <strong>UNA</strong> palabra relacionada</span>
+          </div>
+          <div class="rule">
+            <span class="rule-number">2</span>
+            <span>El impostor debe <strong>improvisar</strong> sin conocer la palabra</span>
+          </div>
+          <div class="rule warning">
+            <span class="rule-number">!</span>
+            <span>Detecta quién está mintiendo</span>
+          </div>
+        </div>
+
+        <div class="active-players">
+          <h3 class="font-oxanium">Tripulantes Activos</h3>
+          <div class="players-grid">
+            @for (player of gameState.activePlayers; track player.name; let i = $index) {
+              <div class="player-card-mini card-enter" [style.animation-delay]="(i * 0.05) + 's'">
+                <div class="player-avatar-mini">
+                  <span class="visor-mini"></span>
+                </div>
+                <span class="name">{{ player.name }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <button class="impostor-btn action-btn voting-btn" (click)="goToVoting()">
+          <span class="vote-icon"></span>
+          Ir a Votación
+        </button>
+      </div>
+    }
+  } @else {
+    <div class="loading-state">
+      <div class="impostor-loader"></div>
+      <p class="font-oxanium">Cargando estado del juego...</p>
+    </div>
+  }
+</div>

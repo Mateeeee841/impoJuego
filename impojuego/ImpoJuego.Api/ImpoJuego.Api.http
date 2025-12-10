@@ -1,0 +1,6 @@
+@ImpoJuego.Api_HostAddress = http://localhost:5193
+
+GET {{ImpoJuego.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
