@@ -59,7 +59,7 @@ public class GameSessionManager : IDisposable
     /// </summary>
     public int ActiveSessionCount => _sessions.Count;
 
-    private void CleanupExpiredSessions(object? state)
+    internal void CleanupExpiredSessions(object? state)
     {
         var cutoff = DateTime.UtcNow - _sessionTimeout;
         var expiredKeys = _sessions

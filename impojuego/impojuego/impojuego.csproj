@@ -8,4 +8,8 @@
     <RootNamespace>ImpoJuego</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ImpoJuego.Tests" />
+  </ItemGroup>
+
 </Project>
