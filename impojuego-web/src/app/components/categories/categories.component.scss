@@ -259,8 +259,10 @@ $green-active: #00ff88;
     border-top: 1px solid rgba($gray-metal, 0.3);
 
     .action-btn {
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       background: transparent;
       border: 1px solid $gray-metal;
       border-radius: 6px;
@@ -268,8 +270,10 @@ $green-active: #00ff88;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       transition: all 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
 
       &.toggle-btn {
         color: $gray-light;
@@ -305,6 +309,39 @@ $green-active: #00ff88;
         }
       }
     }
+  }
+}
+
+// Touch device active states
+@media (pointer: coarse) {
+  .action-btn {
+    &.toggle-btn:active {
+      background: rgba($green-active, 0.2) !important;
+      border-color: $green-active !important;
+      color: $green-active !important;
+      transform: scale(0.95);
+    }
+
+    &.edit-btn:active {
+      background: rgba($cyan-cold, 0.2) !important;
+      border-color: $cyan-cold !important;
+      transform: scale(0.95);
+    }
+
+    &.delete-btn:active {
+      background: rgba($red-blood, 0.2) !important;
+      border-color: $red-blood !important;
+      transform: scale(0.95);
+    }
+  }
+
+  .back-btn:active {
+    transform: scale(0.95);
+    border-color: $cyan-cold;
+  }
+
+  .create-btn:active {
+    transform: scale(0.98);
   }
 }
 
