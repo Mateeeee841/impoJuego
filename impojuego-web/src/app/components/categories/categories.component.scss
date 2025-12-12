@@ -27,18 +27,42 @@ $green-active: #00ff88;
   gap: 1rem;
 
   .back-btn {
-    width: 40px;
-    height: 40px;
-    background: rgba($black-deep, 0.5);
-    border: 1px solid $gray-metal;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    background: rgba($black-deep, 0.8);
+    border: 2px solid $gray-metal;
     border-radius: 8px;
     color: $white-ghost;
     font-size: 1.5rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
     flex-shrink: 0;
 
-    &:hover {
+    // Flexbox para centrar
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // iOS Safari fixes
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        border-color: $cyan-cold;
+        color: $cyan-cold;
+      }
+    }
+
+    &:active {
+      transform: scale(0.92);
       border-color: $cyan-cold;
       color: $cyan-cold;
     }
@@ -109,15 +133,20 @@ $green-active: #00ff88;
   .create-btn, .import-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    min-height: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
+    min-height: 48px;
+    padding: 0.75rem 1.25rem !important;
 
-  .plus-icon, .import-icon {
-    font-size: 1.2rem;
-    font-weight: bold;
+    // iOS Safari fixes
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
   }
 }
 
@@ -259,26 +288,52 @@ $green-active: #00ff88;
   .category-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
+    gap: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid rgba($gray-metal, 0.3);
 
     .action-btn {
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
-      min-height: 44px;
-      background: transparent;
-      border: 1px solid $gray-metal;
-      border-radius: 6px;
+      // Tamaño mínimo para touch (Apple recomienda 44x44)
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      min-height: 48px;
+      padding: 0;
+      margin: 0;
+
+      // Estilos base
+      background: rgba($black-card, 0.8);
+      border: 2px solid $gray-metal;
+      border-radius: 8px;
       cursor: pointer;
+
+      // Texto/icono
+      font-size: 1.4rem;
+      line-height: 1;
+      font-family: system-ui, -apple-system, sans-serif;
+
+      // Flexbox para centrar
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      transition: all 0.3s ease;
+
+      // iOS Safari fixes
       -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
       touch-action: manipulation;
+
+      // Asegurar que el botón sea clickeable
+      position: relative;
+      z-index: 1;
+
+      // Transición suave
+      transition: all 0.15s ease;
+
+      // Eliminar estilos por defecto de iOS
+      -webkit-appearance: none;
+      appearance: none;
 
       &.toggle-btn {
         color: $gray-light;
@@ -286,67 +341,59 @@ $green-active: #00ff88;
         &.active {
           color: $green-active;
           border-color: $green-active;
-        }
-
-        &:hover {
-          background: rgba($green-active, 0.1);
-          border-color: $green-active;
-          color: $green-active;
+          background: rgba($green-active, 0.15);
         }
       }
 
       &.edit-btn {
         color: $cyan-cold;
-
-        &:hover {
-          background: rgba($cyan-cold, 0.1);
-          border-color: $cyan-cold;
-        }
       }
 
       &.delete-btn {
-        color: $red-blood;
+        color: #ff4444;
+      }
 
-        &:hover {
-          background: rgba($red-blood, 0.1);
-          border-color: $red-blood;
-          color: $red-glow;
+      // Estados hover solo para dispositivos con mouse
+      @media (hover: hover) and (pointer: fine) {
+        &.toggle-btn:hover {
+          background: rgba($green-active, 0.2);
+          border-color: $green-active;
+          color: $green-active;
+        }
+
+        &.edit-btn:hover {
+          background: rgba($cyan-cold, 0.2);
+          border-color: $cyan-cold;
+        }
+
+        &.delete-btn:hover {
+          background: rgba(#ff4444, 0.2);
+          border-color: #ff4444;
         }
       }
+
+      // Estados active para touch
+      &:active {
+        transform: scale(0.92);
+        opacity: 0.9;
+      }
+
+      &.toggle-btn:active {
+        background: rgba($green-active, 0.3);
+        border-color: $green-active;
+        color: $green-active;
+      }
+
+      &.edit-btn:active {
+        background: rgba($cyan-cold, 0.3);
+        border-color: $cyan-cold;
+      }
+
+      &.delete-btn:active {
+        background: rgba(#ff4444, 0.3);
+        border-color: #ff4444;
+      }
     }
-  }
-}
-
-// Touch device active states
-@media (pointer: coarse) {
-  .action-btn {
-    &.toggle-btn:active {
-      background: rgba($green-active, 0.2) !important;
-      border-color: $green-active !important;
-      color: $green-active !important;
-      transform: scale(0.95);
-    }
-
-    &.edit-btn:active {
-      background: rgba($cyan-cold, 0.2) !important;
-      border-color: $cyan-cold !important;
-      transform: scale(0.95);
-    }
-
-    &.delete-btn:active {
-      background: rgba($red-blood, 0.2) !important;
-      border-color: $red-blood !important;
-      transform: scale(0.95);
-    }
-  }
-
-  .back-btn:active {
-    transform: scale(0.95);
-    border-color: $cyan-cold;
-  }
-
-  .create-btn:active {
-    transform: scale(0.98);
   }
 }
 
@@ -452,6 +499,22 @@ $green-active: #00ff88;
     button {
       flex: 1;
       padding: 0.875rem 1rem !important;
+      min-height: 48px;
+
+      // iOS Safari fixes
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+
+      &:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+      }
     }
 
     .loader-inline {

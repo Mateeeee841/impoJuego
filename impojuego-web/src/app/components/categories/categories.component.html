@@ -1,8 +1,6 @@
 <div class="categories-container page-enter">
   <div class="categories-header">
-    <button class="back-btn" (click)="goBack()">
-      <span class="arrow">←</span>
-    </button>
+    <button type="button" class="back-btn" (click)="goBack()" aria-label="Volver">←</button>
     <div class="header-content">
       <h1 class="neon-title">Mis Categorías</h1>
       <p class="subtitle font-oxanium">
@@ -29,13 +27,11 @@
     </div>
   } @else {
     <div class="categories-actions">
-      <button class="impostor-btn create-btn" (click)="openCreateModal()">
-        <span class="plus-icon">+</span>
-        Nueva Categoría
+      <button type="button" class="impostor-btn create-btn" (click)="openCreateModal()">
+        + Nueva Categoría
       </button>
-      <button class="impostor-btn-secondary import-btn" (click)="openImportModal()">
-        <span class="import-icon">↑</span>
-        Importar JSON
+      <button type="button" class="impostor-btn-secondary import-btn" (click)="openImportModal()">
+        ↑ Importar JSON
       </button>
     </div>
 
@@ -80,27 +76,24 @@
 
             <div class="category-actions">
               <button
+                type="button"
                 class="action-btn toggle-btn"
                 [class.active]="category.isActive"
-                (click)="toggleActive(category)"
-                [title]="category.isActive ? 'Desactivar' : 'Activar'"
-              >
-                <span class="toggle-icon">{{ category.isActive ? '✓' : '○' }}</span>
-              </button>
+                (click)="toggleActive(category); $event.stopPropagation()"
+                [attr.aria-label]="category.isActive ? 'Desactivar categoría' : 'Activar categoría'"
+              >{{ category.isActive ? '✓' : '○' }}</button>
               <button
+                type="button"
                 class="action-btn edit-btn"
-                (click)="openEditModal(category)"
-                title="Editar"
-              >
-                <span class="edit-icon">✎</span>
-              </button>
+                (click)="openEditModal(category); $event.stopPropagation()"
+                aria-label="Editar categoría"
+              >✎</button>
               <button
+                type="button"
                 class="action-btn delete-btn"
-                (click)="confirmDelete(category)"
-                title="Eliminar"
-              >
-                <span class="delete-icon">×</span>
-              </button>
+                (click)="confirmDelete(category); $event.stopPropagation()"
+                aria-label="Eliminar categoría"
+              >✕</button>
             </div>
           </div>
         }
@@ -147,10 +140,10 @@
       </div>
 
       <div class="modal-actions">
-        <button class="impostor-btn-secondary" (click)="closeModal()" [disabled]="modalLoading">
+        <button type="button" class="impostor-btn-secondary" (click)="closeModal(); $event.stopPropagation()" [disabled]="modalLoading">
           Cancelar
         </button>
-        <button class="impostor-btn" (click)="saveCategory()" [disabled]="modalLoading">
+        <button type="button" class="impostor-btn" (click)="saveCategory(); $event.stopPropagation()" [disabled]="modalLoading">
           @if (modalLoading) {
             <span class="loader-inline"></span>
           } @else {
@@ -166,7 +159,7 @@
 @if (showDeleteConfirm && categoryToDelete) {
   <div class="modal-overlay" (click)="cancelDelete()">
     <div class="modal-content impostor-card card-enter delete-modal" (click)="$event.stopPropagation()">
-      <div class="delete-icon-large">×</div>
+      <div class="delete-icon-large">⚠</div>
       <h2 class="modal-title font-orbitron">Eliminar Categoría</h2>
       <p class="delete-message">
         ¿Estás seguro de que querés eliminar <strong>{{ categoryToDelete.name }}</strong>?
@@ -174,10 +167,10 @@
       <p class="delete-warning">Esta acción no se puede deshacer.</p>
 
       <div class="modal-actions">
-        <button class="impostor-btn-secondary" (click)="cancelDelete()">
+        <button type="button" class="impostor-btn-secondary" (click)="cancelDelete(); $event.stopPropagation()">
           Cancelar
         </button>
-        <button class="impostor-btn delete-confirm-btn" (click)="deleteCategory()">
+        <button type="button" class="impostor-btn delete-confirm-btn" (click)="deleteCategory(); $event.stopPropagation()">
           Eliminar
         </button>
       </div>
@@ -249,11 +242,11 @@
       }
 
       <div class="modal-actions">
-        <button class="impostor-btn-secondary" (click)="closeImportModal()" [disabled]="importLoading">
+        <button type="button" class="impostor-btn-secondary" (click)="closeImportModal(); $event.stopPropagation()" [disabled]="importLoading">
           {{ importResult ? 'Cerrar' : 'Cancelar' }}
         </button>
         @if (!importResult) {
-          <button class="impostor-btn" (click)="importCategories()" [disabled]="importLoading">
+          <button type="button" class="impostor-btn" (click)="importCategories(); $event.stopPropagation()" [disabled]="importLoading">
             @if (importLoading) {
               <span class="loader-inline"></span>
             } @else {
