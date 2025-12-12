@@ -18,6 +18,8 @@ export class GameComponent implements OnInit {
   revealedRole: PlayerRole | null = null;
   playersRevealed: Set<string> = new Set();
   showRole = false;
+  showConfirmation = false;
+  selectedPlayer: string | null = null;
   loading = false;
   error = '';
 
@@ -43,6 +45,42 @@ export class GameComponent implements OnInit {
         }
       },
       error: () => this.error = 'Error al cargar estado del juego'
+    });
+  }
+
+  // Seleccionar jugador y mostrar confirmación
+  selectPlayer(playerName: string): void {
+    if (this.playersRevealed.has(playerName.toLowerCase())) return;
+    this.selectedPlayer = playerName;
+    this.showConfirmation = true;
+  }
+
+  // Cancelar la confirmación
+  cancelConfirmation(): void {
+    this.selectedPlayer = null;
+    this.showConfirmation = false;
+  }
+
+  // Confirmar y revelar rol
+  confirmReveal(): void {
+    if (!this.selectedPlayer) return;
+
+    this.loading = true;
+    this.error = '';
+    this.showConfirmation = false;
+
+    this.gameService.revealRole(this.selectedPlayer).subscribe({
+      next: (role) => {
+        this.revealedRole = role;
+        this.showRole = true;
+        this.loading = false;
+        this.selectedPlayer = null;
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Jugador no encontrado';
+        this.loading = false;
+        this.selectedPlayer = null;
+      }
     });
   }
 

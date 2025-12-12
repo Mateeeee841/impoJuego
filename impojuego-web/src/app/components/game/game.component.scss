@@ -167,25 +167,230 @@ $white-ghost: #e0e0e0;
     color: $gray-light;
     margin-bottom: 1.5rem;
     line-height: 1.5;
+    text-align: center;
+    font-size: 1.1rem;
   }
 
-  .player-input-group {
+  .loader-inline {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(white, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+// Player Selection Grid
+.player-select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.player-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  background: rgba($black-deep, 0.6);
+  border: 2px solid $purple-neon;
+  border-radius: 16px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  animation: card-glitch-in 0.4s ease-out forwards;
+  opacity: 0;
+  -webkit-tap-highlight-color: transparent;
+
+  .player-avatar-large {
+    width: 60px;
+    height: 72px;
+    background: linear-gradient(180deg, $purple-bright 0%, $purple-neon 100%);
+    border-radius: 30px 30px 15px 15px;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba($purple-bright, 0.3);
+
+    .visor-large {
+      position: absolute;
+      top: 14px;
+      left: 12px;
+      width: 36px;
+      height: 22px;
+      background: linear-gradient(135deg, lighten($cyan-cold, 10%) 0%, $cyan-cold 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba($cyan-cold, 0.6);
+    }
+  }
+
+  .player-name-label {
+    font-family: 'Oxanium', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $white-ghost;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  &:hover:not(:disabled),
+  &:active:not(:disabled) {
+    border-color: $cyan-cold;
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba($cyan-cold, 0.4);
+
+    .player-avatar-large {
+      box-shadow: 0 0 30px rgba($cyan-cold, 0.5);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &.revealed,
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: $gray-metal;
+
+    .player-avatar-large {
+      background: linear-gradient(180deg, $gray-metal 0%, darken($gray-metal, 10%) 100%);
+      box-shadow: none;
+
+      .visor-large {
+        background: rgba($gray-light, 0.5);
+        box-shadow: none;
+      }
+    }
+  }
+
+  .revealed-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+    border-radius: 50%;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(#00ff88, 0.5);
+
+    .check-mark {
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+  }
+}
+
+@keyframes card-glitch-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Confirmation Modal
+.confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba($black-deep, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+  animation: fade-in 0.3s ease;
+}
+
+.confirmation-modal {
+  background: linear-gradient(145deg, $black-card 0%, $black-deep 100%);
+  border: 2px solid $cyan-cold;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 350px;
+  width: 100%;
+  box-shadow: 0 0 50px rgba($cyan-cold, 0.3);
+
+  .confirm-avatar {
+    width: 80px;
+    height: 96px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(180deg, $purple-bright 0%, $purple-neon 100%);
+    border-radius: 40px 40px 20px 20px;
+    position: relative;
+    box-shadow: 0 0 30px rgba($purple-bright, 0.5);
+    animation: avatar-pulse 2s ease-in-out infinite;
+
+    .confirm-visor {
+      position: absolute;
+      top: 18px;
+      left: 16px;
+      width: 48px;
+      height: 28px;
+      background: linear-gradient(135deg, lighten($cyan-cold, 10%) 0%, $cyan-cold 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba($cyan-cold, 0.8);
+    }
+  }
+
+  .confirm-name {
+    font-size: 1.8rem;
+    color: $white-ghost;
+    margin-bottom: 0.5rem;
+  }
+
+  .confirm-question {
+    font-size: 1.2rem;
+    color: $cyan-cold;
+    margin-bottom: 2rem;
+  }
+
+  .confirm-buttons {
+    display: flex;
+    flex-direction: column;
     gap: 0.75rem;
 
-    input {
-      flex: 1;
+    .confirm-yes {
+      padding: 1.25rem 2rem !important;
+      font-size: 1.1rem !important;
+      border-color: #00ff88;
+
+      &:hover:not(:disabled),
+      &:active:not(:disabled) {
+        background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+        border-color: #00ff88;
+      }
     }
 
-    .loader-inline {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(white, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .confirm-no {
+      padding: 1rem 2rem !important;
+      opacity: 0.7;
+
+      &:hover,
+      &:active {
+        opacity: 1;
+      }
     }
   }
+}
+
+@keyframes avatar-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 // Progress tracker
@@ -657,8 +862,48 @@ $white-ghost: #e0e0e0;
     }
   }
 
-  .reveal-section .player-input-group {
-    flex-direction: column;
+  .player-select-grid {
+    gap: 0.75rem;
+  }
+
+  .player-select-card {
+    padding: 1rem 0.75rem;
+
+    .player-avatar-large {
+      width: 50px;
+      height: 60px;
+
+      .visor-large {
+        top: 12px;
+        left: 10px;
+        width: 30px;
+        height: 18px;
+      }
+    }
+
+    .player-name-label {
+      font-size: 1rem;
+    }
+  }
+
+  .confirmation-modal {
+    padding: 2rem 1.5rem;
+
+    .confirm-avatar {
+      width: 70px;
+      height: 84px;
+
+      .confirm-visor {
+        top: 16px;
+        left: 14px;
+        width: 42px;
+        height: 24px;
+      }
+    }
+
+    .confirm-name {
+      font-size: 1.5rem;
+    }
   }
 
   .role-modal {
@@ -667,5 +912,21 @@ $white-ghost: #e0e0e0;
 
   .role-reveal-content .secret-word {
     font-size: 1.5rem;
+  }
+}
+
+// Touch device optimizations
+@media (pointer: coarse) {
+  .player-select-card:active:not(:disabled) {
+    transform: scale(0.95);
+    border-color: $cyan-cold;
+  }
+
+  .confirm-yes:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .confirm-no:active {
+    transform: scale(0.95);
   }
 }

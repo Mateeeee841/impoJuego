@@ -27,7 +27,7 @@
     </div>
 
     <!-- Role Reveal Phase -->
-    @if (gameState.phase === 'RoleReveal' && !showRole) {
+    @if (gameState.phase === 'RoleReveal' && !showRole && !showConfirmation) {
       <div class="reveal-section card-enter" style="animation-delay: 0.1s">
         <div class="section-header">
           <div class="visor-icon"></div>
@@ -35,29 +35,31 @@
         </div>
 
         <p class="instruction">
-          Cada tripulante ingresa su nombre para revelar su identidad secreta
+          Tocá tu nombre para revelar tu identidad secreta
         </p>
 
-        <div class="player-input-group">
-          <input
-            type="text"
-            class="impostor-input"
-            [(ngModel)]="currentPlayerName"
-            placeholder="Ingresa tu nombre..."
-            (keyup.enter)="revealRole()"
-            [disabled]="loading"
-          />
-          <button
-            class="impostor-btn"
-            (click)="revealRole()"
-            [disabled]="loading || !currentPlayerName.trim()"
-          >
-            @if (loading) {
-              <span class="loader-inline"></span>
-            } @else {
-              Revelar Rol
-            }
-          </button>
+        <!-- Player Selection Grid -->
+        <div class="player-select-grid">
+          @for (player of gameState.activePlayers; track player.name; let i = $index) {
+            <button
+              class="player-select-card"
+              [class.revealed]="playersRevealed.has(player.name.toLowerCase())"
+              [class.disabled]="playersRevealed.has(player.name.toLowerCase())"
+              [disabled]="playersRevealed.has(player.name.toLowerCase()) || loading"
+              [style.animation-delay]="(i * 0.05) + 's'"
+              (click)="selectPlayer(player.name)"
+            >
+              <div class="player-avatar-large">
+                <div class="visor-large"></div>
+              </div>
+              <span class="player-name-label">{{ player.name }}</span>
+              @if (playersRevealed.has(player.name.toLowerCase())) {
+                <div class="revealed-badge">
+                  <span class="check-mark">✓</span>
+                </div>
+              }
+            </button>
+          }
         </div>
 
         <!-- Progress tracker -->
@@ -72,17 +74,6 @@
               [style.width]="(playersRevealed.size / gameState.activePlayers.length * 100) + '%'"
             ></div>
           </div>
-          <div class="players-chips">
-            @for (player of gameState.activePlayers; track player.name) {
-              <span
-                class="chip"
-                [class.revealed]="playersRevealed.has(player.name.toLowerCase())"
-              >
-                <span class="chip-avatar"></span>
-                {{ player.name }}
-              </span>
-            }
-          </div>
         </div>
 
         @if (allPlayersRevealed) {
@@ -91,6 +82,31 @@
             Todos Listos - Comenzar Discusión
           </button>
         }
+      </div>
+    }
+
+    <!-- Confirmation Modal -->
+    @if (showConfirmation && selectedPlayer) {
+      <div class="confirmation-overlay" (click)="cancelConfirmation()">
+        <div class="confirmation-modal card-enter" (click)="$event.stopPropagation()">
+          <div class="confirm-avatar">
+            <div class="confirm-visor"></div>
+          </div>
+          <h2 class="confirm-name font-oxanium">{{ selectedPlayer }}</h2>
+          <p class="confirm-question">¿Sos vos?</p>
+          <div class="confirm-buttons">
+            <button class="impostor-btn confirm-yes" (click)="confirmReveal()" [disabled]="loading">
+              @if (loading) {
+                <span class="loader-inline"></span>
+              } @else {
+                Sí, ver mi rol
+              }
+            </button>
+            <button class="impostor-btn-secondary confirm-no" (click)="cancelConfirmation()">
+              No, cancelar
+            </button>
+          </div>
+        </div>
       </div>
     }
 
