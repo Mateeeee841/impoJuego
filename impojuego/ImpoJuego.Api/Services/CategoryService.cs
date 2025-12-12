@@ -49,23 +49,18 @@ public class CategoryService : ICategoryService
 
     public async Task<List<Category>> GetActiveCategoriesAsync(int? userId)
     {
-        // Obtiene categorías activas del sistema + las propias del usuario (si está logueado)
-        IQueryable<Category> query = _context.Categories
+        // Solo categorías propias del usuario activas
+        if (!userId.HasValue)
+        {
+            // No logueado: no ve categorías
+            return new List<Category>();
+        }
+
+        return await _context.Categories
             .Include(c => c.Words)
-            .Where(c => c.IsActive);
-
-        if (userId.HasValue)
-        {
-            // Sistema activas + propias activas
-            query = query.Where(c => c.IsSystem || c.OwnerId == userId.Value);
-        }
-        else
-        {
-            // Solo sistema activas
-            query = query.Where(c => c.IsSystem);
-        }
-
-        return await query.OrderBy(c => c.Name).ToListAsync();
+            .Where(c => c.IsActive && c.OwnerId == userId.Value)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
     }
 
     public async Task<Category?> GetCategoryByIdAsync(int id, int? userId, bool isAdmin)

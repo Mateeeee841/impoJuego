@@ -36,10 +36,15 @@ public static class DbSeeder
 
     private static async Task SeedSystemCategoriesAsync(ImpoJuegoDbContext context)
     {
-        if (await context.Categories.AnyAsync(c => c.IsSystem))
+        // Obtener el admin para asignarle las categorías
+        var admin = await context.Users.FirstOrDefaultAsync(u => u.Email == "mateocirujas");
+        if (admin == null) return;
+
+        // Si el admin ya tiene categorías, no hacer nada
+        if (await context.Categories.AnyAsync(c => c.OwnerId == admin.Id))
             return;
 
-        var systemCategories = new Dictionary<string, List<string>>
+        var adminCategories = new Dictionary<string, List<string>>
         {
             ["Conocidos"] = new()
             {
@@ -132,14 +137,14 @@ public static class DbSeeder
             }
         };
 
-        foreach (var (categoryName, words) in systemCategories)
+        foreach (var (categoryName, words) in adminCategories)
         {
             var category = new Category
             {
                 Name = categoryName,
-                IsSystem = true,
+                IsSystem = false,
                 IsActive = true,
-                OwnerId = null,
+                OwnerId = admin.Id,
                 CreatedAt = DateTime.UtcNow
             };
 

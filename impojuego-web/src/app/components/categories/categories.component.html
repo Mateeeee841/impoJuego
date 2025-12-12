@@ -142,20 +142,6 @@
         ></textarea>
       </div>
 
-      @if (authService.isAdmin() && !isEditing) {
-        <div class="form-group checkbox-group">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [(ngModel)]="isSystemCategory"
-              [disabled]="modalLoading"
-            />
-            <span class="checkmark"></span>
-            <span class="label-text font-oxanium">Categoría del sistema (visible para todos)</span>
-          </label>
-        </div>
-      }
-
       <div class="modal-actions">
         <button class="impostor-btn-secondary" (click)="closeModal()" [disabled]="modalLoading">
           Cancelar

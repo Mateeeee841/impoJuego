@@ -24,7 +24,6 @@ export class CategoriesComponent implements OnInit {
   editingCategoryId: number | null = null;
   categoryName = '';
   categoryWords = '';
-  isSystemCategory = false;
   modalLoading = false;
   modalError = '';
 
@@ -63,7 +62,6 @@ export class CategoriesComponent implements OnInit {
     this.editingCategoryId = null;
     this.categoryName = '';
     this.categoryWords = '';
-    this.isSystemCategory = false;
     this.modalError = '';
     this.showModal = true;
   }
@@ -73,7 +71,6 @@ export class CategoriesComponent implements OnInit {
     this.editingCategoryId = category.id;
     this.categoryName = category.name;
     this.categoryWords = category.words.join('\n');
-    this.isSystemCategory = category.isSystem;
     this.modalError = '';
     this.showModal = true;
   }
@@ -118,8 +115,7 @@ export class CategoriesComponent implements OnInit {
     } else {
       this.categoriesService.createCategory({
         name,
-        words,
-        isSystem: this.authService.isAdmin() && this.isSystemCategory
+        words
       }).subscribe({
         next: () => {
           this.modalLoading = false;
