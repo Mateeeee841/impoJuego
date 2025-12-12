@@ -1,4 +1,30 @@
 <div class="lobby-container page-enter">
+  <!-- Auth Navigation -->
+  <div class="auth-nav">
+    @if (authService.isLoggedIn()) {
+      <div class="user-info">
+        <span class="user-email font-oxanium">{{ authService.user()?.email }}</span>
+        @if (authService.isAdmin()) {
+          <span class="admin-badge">Admin</span>
+        }
+      </div>
+      <div class="auth-actions">
+        <a routerLink="/categories" class="nav-btn categories-btn">
+          <span class="icon">📁</span>
+          Categorías
+        </a>
+        <button class="nav-btn logout-btn" (click)="logout()">
+          Salir
+        </button>
+      </div>
+    } @else {
+      <a routerLink="/login" class="nav-btn login-btn">
+        <span class="icon">👤</span>
+        Iniciar Sesión
+      </a>
+    }
+  </div>
+
   <!-- Header -->
   <div class="lobby-header">
     <h1 class="neon-title glitch-text" data-text="IMPOJUEGO">IMPOJUEGO</h1>

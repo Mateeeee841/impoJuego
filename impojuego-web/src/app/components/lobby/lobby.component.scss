@@ -19,6 +19,90 @@ $white-ghost: #e0e0e0;
   gap: 1.5rem;
 }
 
+// Auth Navigation
+.auth-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba($black-card, 0.5);
+  border: 1px solid $gray-metal;
+  border-radius: 8px;
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .user-email {
+      color: $white-ghost;
+      font-size: 0.9rem;
+    }
+
+    .admin-badge {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      background: rgba($purple-bright, 0.2);
+      color: $purple-bright;
+      border: 1px solid $purple-bright;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .auth-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid $gray-metal;
+    border-radius: 6px;
+    color: $gray-light;
+    font-family: 'Oxanium', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+
+    .icon {
+      font-size: 0.9rem;
+    }
+
+    &:hover {
+      border-color: $cyan-cold;
+      color: $cyan-cold;
+    }
+
+    &.login-btn {
+      margin-left: auto;
+    }
+
+    &.categories-btn:hover {
+      border-color: $purple-bright;
+      color: $purple-bright;
+    }
+
+    &.logout-btn {
+      border-color: rgba($red-blood, 0.5);
+      color: $red-blood;
+
+      &:hover {
+        border-color: $red-blood;
+        background: rgba($red-blood, 0.1);
+      }
+    }
+  }
+}
+
 // Header
 .lobby-header {
   text-align: center;

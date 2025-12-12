@@ -78,3 +78,41 @@ export interface Category {
   name: string;
   wordCount: number;
 }
+
+// === Auth ===
+export interface User {
+  id: number;
+  email: string;
+  role: 'Admin' | 'User';
+}
+
+export interface AuthRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+// === Category Management ===
+export interface CategoryDetail {
+  id: number;
+  name: string;
+  words: string[];
+  isSystem: boolean;
+  isOwner: boolean;
+  isActive: boolean;
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  words: string[];
+  isSystem?: boolean;
+}
+
+export interface UpdateCategoryRequest {
+  name: string;
+  words: string[];
+}

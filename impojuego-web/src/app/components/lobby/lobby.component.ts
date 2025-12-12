@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { GameService } from '../../services/game.service';
+import { AuthService } from '../../services/auth.service';
 import { LobbyStatus } from '../../models';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.scss'
 })
@@ -20,7 +21,8 @@ export class LobbyComponent implements OnInit {
 
   constructor(
     private gameService: GameService,
-    private router: Router
+    private router: Router,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -73,5 +75,9 @@ export class LobbyComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

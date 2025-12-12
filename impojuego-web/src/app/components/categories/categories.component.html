@@ -1,0 +1,196 @@
+<div class="categories-container page-enter">
+  <div class="categories-header">
+    <button class="back-btn" (click)="goBack()">
+      <span class="arrow">←</span>
+    </button>
+    <div class="header-content">
+      <h1 class="neon-title">Mis Categorías</h1>
+      <p class="subtitle font-oxanium">
+        @if (authService.isAdmin()) {
+          Administrador - Podés gestionar todas las categorías
+        } @else {
+          Creá y gestioná tus categorías personales
+        }
+      </p>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="error-alert">
+      <span class="error-icon">!</span>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="loading-state">
+      <div class="impostor-loader"></div>
+      <p class="font-oxanium">Cargando categorías...</p>
+    </div>
+  } @else {
+    <div class="categories-actions">
+      <button class="impostor-btn create-btn" (click)="openCreateModal()">
+        <span class="plus-icon">+</span>
+        Nueva Categoría
+      </button>
+    </div>
+
+    @if (categories.length === 0) {
+      <div class="empty-state impostor-card">
+        <div class="empty-icon"></div>
+        <p>No tenés categorías todavía</p>
+        <span class="hint">Creá una nueva para empezar</span>
+      </div>
+    } @else {
+      <div class="categories-list">
+        @for (category of categories; track category.id; let i = $index) {
+          <div
+            class="category-card impostor-card card-enter"
+            [class.system]="category.isSystem"
+            [class.inactive]="!category.isActive"
+            [style.animation-delay]="(i * 0.05) + 's'"
+          >
+            <div class="category-header">
+              <div class="category-info">
+                <h3 class="category-name font-oxanium">{{ category.name }}</h3>
+                <div class="category-badges">
+                  @if (category.isSystem) {
+                    <span class="badge system-badge">Sistema</span>
+                  }
+                  @if (!category.isActive) {
+                    <span class="badge inactive-badge">Desactivada</span>
+                  }
+                </div>
+              </div>
+              <span class="word-count">{{ category.words.length }} palabras</span>
+            </div>
+
+            <div class="category-words">
+              @for (word of category.words.slice(0, 5); track word) {
+                <span class="word-chip">{{ word }}</span>
+              }
+              @if (category.words.length > 5) {
+                <span class="word-chip more">+{{ category.words.length - 5 }} más</span>
+              }
+            </div>
+
+            <div class="category-actions">
+              <button
+                class="action-btn toggle-btn"
+                [class.active]="category.isActive"
+                (click)="toggleActive(category)"
+                [title]="category.isActive ? 'Desactivar' : 'Activar'"
+              >
+                <span class="toggle-icon">{{ category.isActive ? '✓' : '○' }}</span>
+              </button>
+              <button
+                class="action-btn edit-btn"
+                (click)="openEditModal(category)"
+                title="Editar"
+              >
+                <span class="edit-icon">✎</span>
+              </button>
+              <button
+                class="action-btn delete-btn"
+                (click)="confirmDelete(category)"
+                title="Eliminar"
+              >
+                <span class="delete-icon">×</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Create/Edit Modal -->
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content impostor-card card-enter" (click)="$event.stopPropagation()">
+      <h2 class="modal-title font-orbitron">
+        {{ isEditing ? 'Editar Categoría' : 'Nueva Categoría' }}
+      </h2>
+
+      @if (modalError) {
+        <div class="error-alert small">
+          <span class="error-icon">!</span>
+          <span>{{ modalError }}</span>
+        </div>
+      }
+
+      <div class="form-group">
+        <label class="font-oxanium">Nombre</label>
+        <input
+          type="text"
+          class="impostor-input"
+          [(ngModel)]="categoryName"
+          placeholder="Nombre de la categoría"
+          [disabled]="modalLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="font-oxanium">Palabras (una por línea)</label>
+        <textarea
+          class="impostor-input words-textarea"
+          [(ngModel)]="categoryWords"
+          placeholder="Palabra 1&#10;Palabra 2&#10;Palabra 3..."
+          [disabled]="modalLoading"
+          rows="8"
+        ></textarea>
+      </div>
+
+      @if (authService.isAdmin() && !isEditing) {
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="isSystemCategory"
+              [disabled]="modalLoading"
+            />
+            <span class="checkmark"></span>
+            <span class="label-text font-oxanium">Categoría del sistema (visible para todos)</span>
+          </label>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button class="impostor-btn-secondary" (click)="closeModal()" [disabled]="modalLoading">
+          Cancelar
+        </button>
+        <button class="impostor-btn" (click)="saveCategory()" [disabled]="modalLoading">
+          @if (modalLoading) {
+            <span class="loader-inline"></span>
+          } @else {
+            {{ isEditing ? 'Guardar' : 'Crear' }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteConfirm && categoryToDelete) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content impostor-card card-enter delete-modal" (click)="$event.stopPropagation()">
+      <div class="delete-icon-large">×</div>
+      <h2 class="modal-title font-orbitron">Eliminar Categoría</h2>
+      <p class="delete-message">
+        ¿Estás seguro de que querés eliminar <strong>{{ categoryToDelete.name }}</strong>?
+      </p>
+      <p class="delete-warning">Esta acción no se puede deshacer.</p>
+
+      <div class="modal-actions">
+        <button class="impostor-btn-secondary" (click)="cancelDelete()">
+          Cancelar
+        </button>
+        <button class="impostor-btn delete-confirm-btn" (click)="deleteCategory()">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}

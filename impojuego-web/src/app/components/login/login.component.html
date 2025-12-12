@@ -1,0 +1,72 @@
+<div class="login-container page-enter">
+  <div class="login-header">
+    <h1 class="neon-title">ImpoJuego</h1>
+    <p class="subtitle">{{ isLoginMode ? 'Iniciá sesión' : 'Creá tu cuenta' }}</p>
+  </div>
+
+  @if (error) {
+    <div class="error-alert">
+      <span class="error-icon">!</span>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  <div class="login-card impostor-card card-enter">
+    <form (ngSubmit)="submit()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="email" class="font-oxanium">Usuario</label>
+        <input
+          type="text"
+          id="email"
+          class="impostor-input"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="Tu nombre de usuario"
+          [disabled]="loading"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="font-oxanium">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          class="impostor-input"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Tu contraseña"
+          [disabled]="loading"
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="impostor-btn submit-btn"
+        [disabled]="loading"
+      >
+        @if (loading) {
+          <span class="impostor-loader-inline"></span>
+        } @else {
+          <span class="btn-icon"></span>
+          {{ isLoginMode ? 'Entrar' : 'Registrarse' }}
+        }
+      </button>
+    </form>
+
+    <div class="toggle-mode">
+      <span class="toggle-text">
+        {{ isLoginMode ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?' }}
+      </span>
+      <button class="toggle-btn" (click)="toggleMode()">
+        {{ isLoginMode ? 'Registrate' : 'Iniciá sesión' }}
+      </button>
+    </div>
+  </div>
+
+  <a routerLink="/lobby" class="skip-link">
+    <span class="arrow-icon">←</span>
+    Volver al lobby
+  </a>
+</div>

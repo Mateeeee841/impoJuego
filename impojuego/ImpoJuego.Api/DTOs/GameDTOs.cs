@@ -65,3 +65,26 @@ public record GameEndDto(
 );
 
 public record CategoryDto(string Name, int WordCount);
+
+// === AUTH DTOs ===
+
+public record AuthRequest(string Email, string Password);
+
+public record AuthResponseDto(string Token, UserDto User);
+
+public record UserDto(int Id, string Email, string Role);
+
+// === CATEGORY MANAGEMENT DTOs ===
+
+public record CategoryDetailDto(
+    int Id,
+    string Name,
+    List<string> Words,
+    bool IsSystem,
+    bool IsOwner,
+    bool IsActive
+);
+
+public record CreateCategoryRequest(string Name, List<string> Words, bool IsSystem = false);
+
+public record UpdateCategoryRequest(string Name, List<string> Words);
