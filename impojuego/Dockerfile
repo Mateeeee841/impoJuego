@@ -5,6 +5,7 @@ WORKDIR /src
 COPY impojuego.sln ./
 COPY ./impojuego/ ./impojuego/
 COPY ./ImpoJuego.Api/ ./ImpoJuego.Api/
+COPY ./ImpoJuego.Tests/ ./ImpoJuego.Tests/
 
 RUN dotnet restore
 RUN dotnet publish ImpoJuego.Api/ImpoJuego.Api.csproj -c Release -o /app/publish
