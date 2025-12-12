@@ -54,7 +54,7 @@ Angular 17 standalone components with routing:
 - `/voting` - Vote casting
 - `/result` - Game end screen
 
-`GameService` handles all API communication at `http://localhost:5000/api/game`.
+`GameService` handles all API communication. Production points to Render (`https://impojuego-1.onrender.com/api/game`); for local development, update `game.service.ts` to use `http://localhost:5000/api/game`.
 
 ### Frontend Theme ("Among Us Horror")
 Dark cinematic aesthetic with space/impostor theme:
@@ -87,4 +87,10 @@ API responses use `ApiResponse<T>` wrapper with `success`, `message`, and `data`
 - CORS configured for Angular dev server (localhost:4200)
 - Spanish language throughout (comments, categories, UI messages)
 - Impostors can optionally see fellow impostors (configurable)
-- 2-impostor probability kicks in at 5+ players (default 4% chance)
+- 2-impostor probability kicks in at 5+ players (default 3% chance)
+
+## Deployment
+
+- **Backend**: Docker multi-stage build, deployed to Render at `impojuego-1.onrender.com:5000`
+- **Frontend**: Static build (`npm run build`), deployed to Render at `impojuego-web.onrender.com`
+- CORS allows: `localhost:4200`, `localhost:5173`, `127.0.0.1:4200`, and Render production domain

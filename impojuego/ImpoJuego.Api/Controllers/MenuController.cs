@@ -5,14 +5,13 @@ namespace ImpoJuego.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MenuController : ControllerBase
+public class MenuController : SessionControllerBase
 {
-    private readonly MenuManager _menu;
-
-    public MenuController(MenuManager menu)
+    public MenuController(GameSessionManager sessionManager) : base(sessionManager)
     {
-        _menu = menu;
     }
+
+    private MenuManager GetMenu() => new MenuManager(GetGame());
 
     /// <summary>
     /// GET /api/menu/options - Obtener opciones disponibles
@@ -20,7 +19,7 @@ public class MenuController : ControllerBase
     [HttpGet("options")]
     public ActionResult<MenuResponse<List<string>>> GetOptions()
     {
-        var options = _menu.GetAvailableOptions()
+        var options = GetMenu().GetAvailableOptions()
             .Select(o => o.ToString())
             .ToList();
 
@@ -33,7 +32,7 @@ public class MenuController : ControllerBase
     [HttpPost("reset")]
     public ActionResult<MenuResponse<MenuActionResultDto>> ResetGame()
     {
-        var result = _menu.ResetGame();
+        var result = GetMenu().ResetGame();
         return Ok(ToResponse(result));
     }
 
@@ -43,7 +42,7 @@ public class MenuController : ControllerBase
     [HttpPost("full-reset")]
     public ActionResult<MenuResponse<MenuActionResultDto>> FullReset()
     {
-        var result = _menu.FullReset();
+        var result = GetMenu().FullReset();
         return Ok(ToResponse(result));
     }
 
@@ -53,7 +52,7 @@ public class MenuController : ControllerBase
     [HttpPost("back-to-lobby")]
     public ActionResult<MenuResponse<MenuActionResultDto>> BackToLobby()
     {
-        var result = _menu.BackToLobby();
+        var result = GetMenu().BackToLobby();
         return Ok(ToResponse(result));
     }
 
@@ -68,7 +67,7 @@ public class MenuController : ControllerBase
             return BadRequest(new MenuResponse<MenuActionResultDto>(false, $"Acción '{request.Action}' no válida", null));
         }
 
-        var result = _menu.ExecuteOption(option);
+        var result = GetMenu().ExecuteOption(option);
         return Ok(ToResponse(result));
     }
 

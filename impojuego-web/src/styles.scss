@@ -37,31 +37,40 @@ body {
   position: relative;
 }
 
-// === CUSTOM CURSOR ===
-body::after {
-  content: '';
-  position: fixed;
-  width: 20px;
-  height: 20px;
-  background: radial-gradient(circle, $red-blood 0%, transparent 70%);
-  border: 2px solid $red-glow;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 99999;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 15px $red-glow, 0 0 30px rgba(255, 0, 0, 0.5);
-  animation: cursor-pulse 1.5s ease-in-out infinite;
+// === CUSTOM CURSOR (solo desktop) ===
+// Ocultar cursor custom en dispositivos táctiles
+@media (pointer: coarse), (hover: none) {
+  body::after {
+    display: none !important;
+  }
+}
+
+// Solo mostrar en dispositivos con mouse
+@media (pointer: fine) and (hover: hover) {
+  body::after {
+    content: '';
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, $red-blood 0%, transparent 70%);
+    border: 2px solid $red-glow;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px $red-glow, 0 0 30px rgba(255, 0, 0, 0.5);
+    animation: cursor-pulse 1.5s ease-in-out infinite;
+  }
+
+  body.cursor-ready::after {
+    left: var(--cursor-x, -100px);
+    top: var(--cursor-y, -100px);
+  }
 }
 
 @keyframes cursor-pulse {
   0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
-}
-
-// Mover cursor con JS
-body.cursor-ready::after {
-  left: var(--cursor-x, -100px);
-  top: var(--cursor-y, -100px);
 }
 
 // === STARS BACKGROUND ===
@@ -709,7 +718,7 @@ body.shaking {
   }
 }
 
-// === RESPONSIVE ===
+// === RESPONSIVE & MOBILE ===
 @media (max-width: 600px) {
   body {
     font-size: 14px;
@@ -723,5 +732,51 @@ body.shaking {
   .impostor-btn {
     padding: 0.75rem 1.5rem;
     font-size: 0.9rem;
+  }
+}
+
+// === TOUCH DEVICE OPTIMIZATIONS ===
+@media (pointer: coarse) {
+  // Deshabilitar efectos hover en táctil (causan problemas)
+  .impostor-card:hover {
+    transform: none;
+  }
+
+  // Agregar estados active para feedback táctil
+  .impostor-btn:active:not(:disabled) {
+    transform: scale(0.95);
+    background: $red-blood-dark;
+  }
+
+  .impostor-btn-secondary:active:not(:disabled) {
+    background: $purple-neon;
+  }
+
+  // Mejor touch target - mínimo 44px según Apple HIG
+  .impostor-btn {
+    min-height: 48px;
+    padding: 1rem 1.5rem;
+  }
+
+  .impostor-input {
+    min-height: 48px;
+    font-size: 16px; // Previene zoom en iOS
+  }
+
+  // Desactivar animaciones pesadas en móvil
+  .neon-title {
+    animation: none;
+  }
+
+  // Reducir efectos de glow para mejor performance
+  .glow-red,
+  .glow-purple,
+  .glow-cyan {
+    box-shadow: none;
+  }
+
+  // Quitar tap highlight en todos los elementos interactivos
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
   }
 }

@@ -5,17 +5,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // === SERVICES ===
 
-// Game Manager como Singleton (una sola instancia compartida)
-builder.Services.AddSingleton<GameSettings>(sp => new GameSettings
+// Configuración del juego
+var gameSettings = new GameSettings
 {
     MinPlayers = 3,
     MaxPlayers = 20,
     TwoImpostorsProbability = 0.03,
     ImpostorsKnowEachOther = true
-});
+};
 
-builder.Services.AddSingleton<GameManager>();
-builder.Services.AddSingleton<MenuManager>();
+// Session Manager - cada navegador tiene su propia partida
+builder.Services.AddSingleton(gameSettings);
+builder.Services.AddSingleton<GameSessionManager>(sp =>
+    new GameSessionManager(gameSettings, TimeSpan.FromHours(4)));
 
 // Controllers
 builder.Services.AddControllers();
@@ -39,6 +41,7 @@ builder.Services.AddCors(options =>
                 "https://impojuego-web.onrender.com"  // Producción Render
             )
             .AllowAnyHeader()
+            .WithExposedHeaders("X-Session-Id")
             .AllowAnyMethod()
             .AllowCredentials();
     });

@@ -12,11 +12,23 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'impojuego-web';
   private shakeInterval: any;
   private particleInterval: any;
+  private isTouchDevice = false;
 
   ngOnInit(): void {
-    this.initCursor();
+    this.isTouchDevice = this.detectTouchDevice();
+
+    if (!this.isTouchDevice) {
+      this.initCursor();
+    }
+
     this.initParticles();
     this.initScreenShake();
+  }
+
+  private detectTouchDevice(): boolean {
+    return 'ontouchstart' in window ||
+           navigator.maxTouchPoints > 0 ||
+           window.matchMedia('(pointer: coarse)').matches;
   }
 
   ngOnDestroy(): void {
@@ -26,6 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(e: MouseEvent): void {
+    if (this.isTouchDevice) return;
     document.body.style.setProperty('--cursor-x', e.clientX + 'px');
     document.body.style.setProperty('--cursor-y', e.clientY + 'px');
   }
@@ -38,15 +51,19 @@ export class AppComponent implements OnInit, OnDestroy {
     const container = document.getElementById('particles-container');
     if (!container) return;
 
+    // Menos partículas en móvil para mejor performance
+    const particleCount = this.isTouchDevice ? 5 : 15;
+    const particleInterval = this.isTouchDevice ? 4000 : 2000;
+
     // Crear partículas iniciales
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < particleCount; i++) {
       setTimeout(() => this.createParticle(container), i * 500);
     }
 
     // Seguir creando partículas
     this.particleInterval = setInterval(() => {
       this.createParticle(container);
-    }, 2000);
+    }, particleInterval);
   }
 
   private createParticle(container: HTMLElement): void {

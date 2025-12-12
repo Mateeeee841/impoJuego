@@ -229,11 +229,12 @@ $white-ghost: #e0e0e0;
     background: rgba($black-deep, 0.5);
     border: 2px solid $gray-metal;
     border-radius: 8px;
-    cursor: none;
+    cursor: pointer;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
     opacity: 0;
+    -webkit-tap-highlight-color: transparent; // Evita el highlight azul en iOS
 
     .suspect-avatar {
       width: 40px;
@@ -625,5 +626,25 @@ $white-ghost: #e0e0e0;
 
   .suspects-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+// Touch device active states
+@media (pointer: coarse) {
+  .suspect-btn:active:not(:disabled) {
+    border-color: $red-blood;
+    transform: scale(0.95);
+
+    .suspect-avatar {
+      background: linear-gradient(180deg, $red-blood 0%, darken($red-blood, 10%) 100%);
+    }
+
+    .vote-overlay {
+      opacity: 1;
+    }
+  }
+
+  .skip-btn:active:not(:disabled) {
+    transform: scale(0.95);
   }
 }

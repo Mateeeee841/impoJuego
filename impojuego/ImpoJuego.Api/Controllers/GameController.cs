@@ -8,13 +8,10 @@ namespace ImpoJuego.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GameController : ControllerBase
+public class GameController : SessionControllerBase
 {
-    private readonly GameManager _game;
-
-    public GameController(GameManager game)
+    public GameController(GameSessionManager sessionManager) : base(sessionManager)
     {
-        _game = game;
     }
 
     // === LOBBY ENDPOINTS ===
@@ -25,15 +22,15 @@ public class GameController : ControllerBase
     [HttpGet("lobby")]
     public ActionResult<ApiResponse<LobbyStatusDto>> GetLobbyStatus()
     {
-        var players = _game.Players.Players
+        var players = GetGame().Players.Players
             .Select(p => new PlayerDto(p.Name, p.IsEliminated))
             .ToList();
 
         var data = new LobbyStatusDto(
             Players: players,
-            MinPlayers: _game.Settings.MinPlayers,
-            MaxPlayers: _game.Settings.MaxPlayers,
-            CanStart: _game.Players.Count >= _game.Settings.MinPlayers
+            MinPlayers: GetGame().Settings.MinPlayers,
+            MaxPlayers: GetGame().Settings.MaxPlayers,
+            CanStart: GetGame().Players.Count >= GetGame().Settings.MinPlayers
         );
 
         return Ok(new ApiResponse<LobbyStatusDto>(true, "Lobby status", data));
@@ -45,21 +42,21 @@ public class GameController : ControllerBase
     [HttpPost("players")]
     public ActionResult<ApiResponse<LobbyStatusDto>> RegisterPlayer([FromBody] RegisterPlayerRequest request)
     {
-        var (success, message) = _game.RegisterPlayer(request.Name);
+        var (success, message) = GetGame().RegisterPlayer(request.Name);
 
         if (!success)
             return BadRequest(new ApiResponse<LobbyStatusDto>(false, message, null));
 
         // Devolver estado actualizado del lobby
-        var players = _game.Players.Players
+        var players = GetGame().Players.Players
             .Select(p => new PlayerDto(p.Name, p.IsEliminated))
             .ToList();
 
         var data = new LobbyStatusDto(
             Players: players,
-            MinPlayers: _game.Settings.MinPlayers,
-            MaxPlayers: _game.Settings.MaxPlayers,
-            CanStart: _game.Players.Count >= _game.Settings.MinPlayers
+            MinPlayers: GetGame().Settings.MinPlayers,
+            MaxPlayers: GetGame().Settings.MaxPlayers,
+            CanStart: GetGame().Players.Count >= GetGame().Settings.MinPlayers
         );
 
         return Ok(new ApiResponse<LobbyStatusDto>(true, message, data));
@@ -71,10 +68,10 @@ public class GameController : ControllerBase
     [HttpDelete("players/{name}")]
     public ActionResult<ApiResponse<object>> RemovePlayer(string name)
     {
-        if (_game.CurrentPhase != GamePhase.Lobby)
+        if (GetGame().CurrentPhase != GamePhase.Lobby)
             return BadRequest(new ApiResponse<object>(false, "Solo se pueden eliminar jugadores en el lobby", null));
 
-        var removed = _game.Players.RemovePlayer(name);
+        var removed = GetGame().Players.RemovePlayer(name);
 
         if (!removed)
             return NotFound(new ApiResponse<object>(false, $"Jugador '{name}' no encontrado", null));
@@ -90,15 +87,15 @@ public class GameController : ControllerBase
     [HttpPost("start")]
     public ActionResult<ApiResponse<GameStartedDto>> StartGame()
     {
-        var (success, message) = _game.StartGame();
+        var (success, message) = GetGame().StartGame();
 
         if (!success)
             return BadRequest(new ApiResponse<GameStartedDto>(false, message, null));
 
         var data = new GameStartedDto(
-            Category: _game.CurrentCategory,
-            ImpostorCount: _game.Players.GetActiveImpostors().Count,
-            Players: _game.Players.Players.Select(p => p.Name).ToList()
+            Category: GetGame().CurrentCategory,
+            ImpostorCount: GetGame().Players.GetActiveImpostors().Count,
+            Players: GetGame().Players.Players.Select(p => p.Name).ToList()
         );
 
         return Ok(new ApiResponse<GameStartedDto>(true, message, data));
@@ -110,16 +107,16 @@ public class GameController : ControllerBase
     [HttpGet("state")]
     public ActionResult<ApiResponse<GameStateDto>> GetGameState()
     {
-        var activePlayers = _game.Players.GetActivePlayers()
+        var activePlayers = GetGame().Players.GetActivePlayers()
             .Select(p => new PlayerDto(p.Name, p.IsEliminated))
             .ToList();
 
         var data = new GameStateDto(
-            Phase: _game.CurrentPhase.ToString(),
-            RoundNumber: _game.RoundNumber,
-            Category: _game.CurrentCategory,
+            Phase: GetGame().CurrentPhase.ToString(),
+            RoundNumber: GetGame().RoundNumber,
+            Category: GetGame().CurrentCategory,
             ActivePlayers: activePlayers,
-            ImpostorCount: _game.Players.GetActiveImpostors().Count
+            ImpostorCount: GetGame().Players.GetActiveImpostors().Count
         );
 
         return Ok(new ApiResponse<GameStateDto>(true, "Game state", data));
@@ -131,7 +128,7 @@ public class GameController : ControllerBase
     [HttpPost("reveal")]
     public ActionResult<ApiResponse<PlayerRoleDto>> RevealRole([FromBody] RevealRoleRequest request)
     {
-        var info = _game.GetPlayerInfo(request.PlayerName);
+        var info = GetGame().GetPlayerInfo(request.PlayerName);
 
         if (info == null)
             return NotFound(new ApiResponse<PlayerRoleDto>(false, "Jugador no encontrado o ya eliminado", null));
@@ -153,7 +150,7 @@ public class GameController : ControllerBase
     [HttpPost("discussion")]
     public ActionResult<ApiResponse<GameStateDto>> StartDiscussion()
     {
-        _game.StartDiscussion();
+        GetGame().StartDiscussion();
         return GetGameState();
     }
 
@@ -165,7 +162,7 @@ public class GameController : ControllerBase
     [HttpPost("voting")]
     public ActionResult<ApiResponse<GameStateDto>> StartVoting()
     {
-        _game.StartVoting();
+        GetGame().StartVoting();
         return GetGameState();
     }
 
@@ -175,24 +172,24 @@ public class GameController : ControllerBase
     [HttpPost("vote")]
     public ActionResult<ApiResponse<object>> CastVote([FromBody] CastVoteRequest request)
     {
-        var voter = _game.Players.GetPlayer(request.VoterName);
+        var voter = GetGame().Players.GetPlayer(request.VoterName);
         if (voter == null)
             return NotFound(new ApiResponse<object>(false, "Votante no encontrado", null));
 
         Player? target = null;
         if (!string.IsNullOrEmpty(request.TargetName))
         {
-            target = _game.Players.GetPlayer(request.TargetName);
+            target = GetGame().Players.GetPlayer(request.TargetName);
             if (target == null)
                 return NotFound(new ApiResponse<object>(false, "Objetivo no encontrado", null));
         }
 
-        var (success, message) = _game.Voting.CastVote(voter, target);
+        var (success, message) = GetGame().Voting.CastVote(voter, target);
 
         if (!success)
             return BadRequest(new ApiResponse<object>(false, message, null));
 
-        return Ok(new ApiResponse<object>(true, message, new { VotesCast = _game.Voting.VotesCast }));
+        return Ok(new ApiResponse<object>(true, message, new { VotesCast = GetGame().Voting.VotesCast }));
     }
 
     /// <summary>
@@ -201,14 +198,14 @@ public class GameController : ControllerBase
     [HttpGet("votes")]
     public ActionResult<ApiResponse<object>> GetVotingStatus()
     {
-        var activePlayers = _game.Players.GetActivePlayers().Count;
-        var votesCast = _game.Voting.VotesCast;
+        var activePlayers = GetGame().Players.GetActivePlayers().Count;
+        var votesCast = GetGame().Voting.VotesCast;
 
         return Ok(new ApiResponse<object>(true, "Voting status", new
         {
             VotesCast = votesCast,
             TotalVoters = activePlayers,
-            AllVotesIn = _game.Voting.AllVotesIn()
+            AllVotesIn = GetGame().Voting.AllVotesIn()
         }));
     }
 
@@ -218,10 +215,10 @@ public class GameController : ControllerBase
     [HttpPost("tally")]
     public ActionResult<ApiResponse<RoundResultDto>> TallyVotes()
     {
-        if (!_game.Voting.AllVotesIn())
+        if (!GetGame().Voting.AllVotesIn())
             return BadRequest(new ApiResponse<RoundResultDto>(false, "No todos han votado", null));
 
-        var (voteResult, gameStatus, message) = _game.ProcessVotingResult();
+        var (voteResult, gameStatus, message) = GetGame().ProcessVotingResult();
 
         var voteResultDto = new VoteResultDto(
             EliminatedPlayer: voteResult.EliminatedPlayer?.Name,
@@ -247,21 +244,21 @@ public class GameController : ControllerBase
     [HttpGet("result")]
     public ActionResult<ApiResponse<GameEndDto>> GetGameResult()
     {
-        if (_game.CurrentPhase != GamePhase.Finished)
+        if (GetGame().CurrentPhase != GamePhase.Finished)
             return BadRequest(new ApiResponse<GameEndDto>(false, "El juego no ha terminado", null));
 
-        var result = _game.CheckWinCondition();
-        var impostors = _game.Players.GetAllPlayersByRole(GameRole.Impostor)
+        var result = GetGame().CheckWinCondition();
+        var impostors = GetGame().Players.GetAllPlayersByRole(GameRole.Impostor)
             .Select(p => p.Name)
             .ToList();
 
         var data = new GameEndDto(
             Winner: result == GameResult.CrewmatesWin ? "Crewmates" : "Impostores",
             Impostors: impostors,
-            SecretWord: _game.CurrentWord
+            SecretWord: GetGame().CurrentWord
         );
 
-        return Ok(new ApiResponse<GameEndDto>(true, _game.GetWinMessage(result), data));
+        return Ok(new ApiResponse<GameEndDto>(true, GetGame().GetWinMessage(result), data));
     }
 
     /// <summary>
@@ -270,7 +267,7 @@ public class GameController : ControllerBase
     [HttpPost("reset")]
     public ActionResult<ApiResponse<object>> ResetGame()
     {
-        _game.ResetGame();
+        GetGame().ResetGame();
         return Ok(new ApiResponse<object>(true, "Juego reiniciado", null));
     }
 
@@ -280,7 +277,7 @@ public class GameController : ControllerBase
     [HttpPost("full-reset")]
     public ActionResult<ApiResponse<object>> FullReset()
     {
-        _game.FullReset();
+        GetGame().FullReset();
         return Ok(new ApiResponse<object>(true, "Juego reiniciado completamente", null));
     }
 
