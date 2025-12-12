@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using ImpoJuego.Api.DTOs;
+using ImpoJuego.Api.Services;
 using ImpoJuego.Managers;
 using ImpoJuego.Models;
 using ImpoJuego.Data;
@@ -10,8 +12,23 @@ namespace ImpoJuego.Api.Controllers;
 [Route("api/[controller]")]
 public class GameController : SessionControllerBase
 {
-    public GameController(GameSessionManager sessionManager) : base(sessionManager)
+    private readonly ICategoryService _categoryService;
+
+    public GameController(GameSessionManager sessionManager, ICategoryService categoryService) : base(sessionManager)
     {
+        _categoryService = categoryService;
+    }
+
+    private (int? userId, bool isAdmin) GetUserInfo()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        int? userId = null;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var id))
+            userId = id;
+
+        return (userId, role == "Admin");
     }
 
     // === LOBBY ENDPOINTS ===
@@ -85,9 +102,22 @@ public class GameController : SessionControllerBase
     /// POST /api/game/start - Iniciar partida (impostores se asignan random)
     /// </summary>
     [HttpPost("start")]
-    public ActionResult<ApiResponse<GameStartedDto>> StartGame()
+    public async Task<ActionResult<ApiResponse<GameStartedDto>>> StartGame()
     {
-        var (success, message) = GetGame().StartGame();
+        var (userId, _) = GetUserInfo();
+
+        // Obtener categorías activas del usuario desde la DB
+        var activeCategories = await _categoryService.GetActiveCategoriesAsync(userId);
+
+        // Convertir a diccionario para el GameManager
+        var categoriesDict = activeCategories
+            .Where(c => c.Words != null && c.Words.Count > 0)
+            .ToDictionary(
+                c => c.Name,
+                c => c.Words.Select(w => w.Text).ToList()
+            );
+
+        var (success, message) = GetGame().StartGame(categoriesDict);
 
         if (!success)
             return BadRequest(new ApiResponse<GameStartedDto>(false, message, null));

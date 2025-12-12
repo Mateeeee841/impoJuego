@@ -64,9 +64,21 @@ public class GameManager
     }
 
     /// <summary>
-    /// Inicia una nueva partida
+    /// Inicia una nueva partida con categorías por defecto (hardcodeadas)
     /// </summary>
     public (bool Success, string Message) StartGame()
+    {
+        // Usar categorías hardcodeadas como fallback
+        var defaultCategories = WordCategories.GetCategoryNames()
+            .ToDictionary(c => c, c => WordCategories.GetWords(c).ToList());
+
+        return StartGame(defaultCategories);
+    }
+
+    /// <summary>
+    /// Inicia una nueva partida con categorías personalizadas
+    /// </summary>
+    public (bool Success, string Message) StartGame(Dictionary<string, List<string>> categories)
     {
         if (CurrentPhase != GamePhase.Lobby)
             return (false, "El juego ya está en curso");
@@ -74,9 +86,18 @@ public class GameManager
         if (Players.Count < Settings.MinPlayers)
             return (false, $"Se necesitan al menos {Settings.MinPlayers} jugadores");
 
-        // Seleccionar categoría y palabra
-        CurrentCategory = WordCategories.GetRandomCategory(_random);
-        CurrentWord = WordCategories.GetRandomWord(CurrentCategory, _random);
+        if (categories == null || categories.Count == 0)
+            return (false, "No hay categorías disponibles. Activá al menos una categoría.");
+
+        // Seleccionar categoría y palabra de las categorías proporcionadas
+        var categoryNames = categories.Keys.ToList();
+        CurrentCategory = categoryNames[_random.Next(categoryNames.Count)];
+
+        var words = categories[CurrentCategory];
+        if (words == null || words.Count == 0)
+            return (false, $"La categoría '{CurrentCategory}' no tiene palabras.");
+
+        CurrentWord = words[_random.Next(words.Count)];
 
         // Asignar roles
         int impostorCount = Settings.GetImpostorCount(_random, Players.Count);
