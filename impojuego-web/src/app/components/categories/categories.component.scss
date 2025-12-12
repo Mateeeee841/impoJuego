@@ -103,16 +103,21 @@ $green-active: #00ff88;
 .categories-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 
-  .create-btn {
+  .create-btn, .import-btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-    .plus-icon {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
+  .plus-icon, .import-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
   }
 }
 
@@ -497,6 +502,105 @@ $green-active: #00ff88;
 
       &:hover:not(:disabled) {
         box-shadow: 0 0 20px rgba($red-glow, 0.5) !important;
+      }
+    }
+  }
+
+  &.import-modal {
+    max-width: 500px;
+
+    .file-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba($black-deep, 0.5);
+      border: 1px solid $gray-metal;
+      border-radius: 6px;
+      color: $white-ghost;
+      cursor: pointer;
+
+      &::file-selector-button {
+        background: linear-gradient(135deg, $purple-neon 0%, $purple-bright 100%);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        margin-right: 1rem;
+        font-family: 'Oxanium', sans-serif;
+      }
+    }
+
+    .json-textarea {
+      resize: vertical;
+      min-height: 150px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .json-format-help {
+      padding: 1rem;
+      background: rgba($black-deep, 0.5);
+      border: 1px solid $gray-metal;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+
+      p {
+        color: $gray-light;
+        font-size: 0.8rem;
+        margin: 0 0 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      pre {
+        margin: 0;
+        color: $cyan-cold;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        overflow-x: auto;
+      }
+    }
+
+    .import-result {
+      padding: 1.25rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+
+      &.success {
+        background: rgba($green-active, 0.1);
+        border: 1px solid $green-active;
+      }
+
+      &.has-errors {
+        background: rgba($red-blood, 0.1);
+        border: 1px solid $red-blood;
+      }
+
+      .result-summary {
+        font-size: 1.1rem;
+        margin: 0 0 0.75rem;
+        text-align: center;
+
+        .created {
+          color: $green-active;
+          font-weight: bold;
+        }
+
+        .failed {
+          color: $red-glow;
+        }
+      }
+
+      .error-list {
+        margin: 0;
+        padding-left: 1.25rem;
+        font-size: 0.85rem;
+        color: $gray-light;
+
+        li {
+          margin-bottom: 0.25rem;
+        }
       }
     }
   }

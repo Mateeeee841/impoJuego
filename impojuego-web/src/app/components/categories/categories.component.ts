@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CategoriesService } from '../../services/categories.service';
-import { CategoryDetail } from '../../models';
+import { CategoryDetail, ImportCategoryItem } from '../../models';
 
 @Component({
   selector: 'app-categories',
@@ -30,6 +30,13 @@ export class CategoriesComponent implements OnInit {
   // Delete confirmation
   showDeleteConfirm = false;
   categoryToDelete: CategoryDetail | null = null;
+
+  // Import JSON state
+  showImportModal = false;
+  importJson = '';
+  importLoading = false;
+  importError = '';
+  importResult: { created: number; failed: number; errors: string[] } | null = null;
 
   constructor(
     public authService: AuthService,
@@ -168,5 +175,70 @@ export class CategoriesComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/lobby']);
+  }
+
+  // === Import JSON ===
+  openImportModal(): void {
+    this.importJson = '';
+    this.importError = '';
+    this.importResult = null;
+    this.showImportModal = true;
+  }
+
+  closeImportModal(): void {
+    this.showImportModal = false;
+    this.importError = '';
+    this.importResult = null;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.importJson = reader.result as string;
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  importCategories(): void {
+    this.importError = '';
+    this.importResult = null;
+
+    if (!this.importJson.trim()) {
+      this.importError = 'Pegá o cargá un archivo JSON';
+      return;
+    }
+
+    let parsed: { categories?: ImportCategoryItem[] };
+    try {
+      parsed = JSON.parse(this.importJson);
+    } catch {
+      this.importError = 'JSON inválido';
+      return;
+    }
+
+    if (!parsed.categories || !Array.isArray(parsed.categories) || parsed.categories.length === 0) {
+      this.importError = 'El JSON debe tener un array "categories" con al menos una categoría';
+      return;
+    }
+
+    this.importLoading = true;
+
+    this.categoriesService.importCategories({ categories: parsed.categories }).subscribe({
+      next: (result) => {
+        this.importResult = result;
+        this.importLoading = false;
+        if (result.created > 0) {
+          this.loadCategories();
+        }
+      },
+      error: (err) => {
+        this.importError = err.error?.message || 'Error al importar';
+        this.importLoading = false;
+      }
+    });
   }
 }

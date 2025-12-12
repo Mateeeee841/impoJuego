@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { ApiResponse, CategoryDetail, CreateCategoryRequest, UpdateCategoryRequest } from '../models';
+import { ApiResponse, CategoryDetail, CreateCategoryRequest, UpdateCategoryRequest, ImportCategoriesRequest, ImportResult } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -52,5 +52,11 @@ export class CategoriesService {
   toggleCategory(id: number): Observable<void> {
     return this.http.post<ApiResponse<any>>(`${this.baseUrl}/categories/${id}/toggle`, {})
       .pipe(map(() => {}));
+  }
+
+  // Importar categorías desde JSON
+  importCategories(request: ImportCategoriesRequest): Observable<ImportResult> {
+    return this.http.post<ApiResponse<ImportResult>>(`${this.baseUrl}/categories/import`, request)
+      .pipe(map(res => res.data!));
   }
 }

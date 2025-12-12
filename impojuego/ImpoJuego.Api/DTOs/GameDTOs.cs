@@ -88,3 +88,9 @@ public record CategoryDetailDto(
 public record CreateCategoryRequest(string Name, List<string> Words, bool IsSystem = false);
 
 public record UpdateCategoryRequest(string Name, List<string> Words);
+
+public record ImportCategoryItem(string Name, List<string> Words);
+
+public record ImportCategoriesRequest(List<ImportCategoryItem> Categories);
+
+public record ImportResultDto(int Created, int Failed, List<string> Errors);

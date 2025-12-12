@@ -33,6 +33,10 @@
         <span class="plus-icon">+</span>
         Nueva Categoría
       </button>
+      <button class="impostor-btn-secondary import-btn" (click)="openImportModal()">
+        <span class="import-icon">↑</span>
+        Importar JSON
+      </button>
     </div>
 
     @if (categories.length === 0) {
@@ -176,6 +180,87 @@
         <button class="impostor-btn delete-confirm-btn" (click)="deleteCategory()">
           Eliminar
         </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Import JSON Modal -->
+@if (showImportModal) {
+  <div class="modal-overlay" (click)="closeImportModal()">
+    <div class="modal-content impostor-card card-enter import-modal" (click)="$event.stopPropagation()">
+      <h2 class="modal-title font-orbitron">Importar Categorías</h2>
+
+      @if (importError) {
+        <div class="error-alert small">
+          <span class="error-icon">!</span>
+          <span>{{ importError }}</span>
+        </div>
+      }
+
+      @if (importResult) {
+        <div class="import-result" [class.success]="importResult.created > 0" [class.has-errors]="importResult.failed > 0">
+          <p class="result-summary">
+            <span class="created">{{ importResult.created }} creada(s)</span>
+            @if (importResult.failed > 0) {
+              <span class="failed">, {{ importResult.failed }} fallida(s)</span>
+            }
+          </p>
+          @if (importResult.errors.length > 0) {
+            <ul class="error-list">
+              @for (err of importResult.errors; track err) {
+                <li>{{ err }}</li>
+              }
+            </ul>
+          }
+        </div>
+      } @else {
+        <div class="form-group">
+          <label class="font-oxanium">Archivo JSON</label>
+          <input
+            type="file"
+            accept=".json"
+            class="file-input"
+            (change)="onFileSelected($event)"
+            [disabled]="importLoading"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="font-oxanium">O pegá el JSON directamente</label>
+          <textarea
+            class="impostor-input json-textarea"
+            [(ngModel)]="importJson"
+            placeholder='{"categories": [{"name": "Mi Categoría", "words": ["palabra1", "palabra2"]}]}'
+            [disabled]="importLoading"
+            rows="10"
+          ></textarea>
+        </div>
+
+        <div class="json-format-help">
+          <p class="font-oxanium">Formato esperado:</p>
+          <pre>{{'{'}}"categories": [
+  {{'{'}}
+    "name": "Nombre",
+    "words": ["palabra1", "palabra2", ...]
+  {{'}'}}
+]{{'}'}}</pre>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button class="impostor-btn-secondary" (click)="closeImportModal()" [disabled]="importLoading">
+          {{ importResult ? 'Cerrar' : 'Cancelar' }}
+        </button>
+        @if (!importResult) {
+          <button class="impostor-btn" (click)="importCategories()" [disabled]="importLoading">
+            @if (importLoading) {
+              <span class="loader-inline"></span>
+            } @else {
+              Importar
+            }
+          </button>
+        }
       </div>
     </div>
   </div>

@@ -13,6 +13,7 @@ public interface ICategoryService
     Task<(Category? category, string? error)> UpdateCategoryAsync(int id, string name, List<string> words, int? userId, bool isAdmin);
     Task<(bool success, string? error)> DeleteCategoryAsync(int id, int? userId, bool isAdmin);
     Task<(bool success, string? error)> ToggleCategoryActiveAsync(int id, int? userId, bool isAdmin);
+    Task<(int created, int failed, List<string> errors)> ImportCategoriesAsync(List<(string name, List<string> words)> categories, int userId);
 }
 
 public class CategoryService : ICategoryService
@@ -188,5 +189,66 @@ public class CategoryService : ICategoryService
         await _context.SaveChangesAsync();
 
         return (true, null);
+    }
+
+    public async Task<(int created, int failed, List<string> errors)> ImportCategoriesAsync(List<(string name, List<string> words)> categories, int userId)
+    {
+        var created = 0;
+        var failed = 0;
+        var errors = new List<string>();
+
+        foreach (var (name, words) in categories)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                failed++;
+                errors.Add("Categoría sin nombre ignorada");
+                continue;
+            }
+
+            if (words == null || words.Count == 0)
+            {
+                failed++;
+                errors.Add($"'{name}': sin palabras");
+                continue;
+            }
+
+            // Verificar si ya existe una categoría con ese nombre para este usuario
+            var exists = await _context.Categories.AnyAsync(c =>
+                c.OwnerId == userId && c.Name.ToLower() == name.Trim().ToLower());
+
+            if (exists)
+            {
+                failed++;
+                errors.Add($"'{name}': ya existe");
+                continue;
+            }
+
+            var category = new Category
+            {
+                Name = name.Trim(),
+                IsSystem = false,
+                IsActive = true,
+                OwnerId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
+
+            foreach (var word in words.Where(w => !string.IsNullOrWhiteSpace(w)))
+            {
+                _context.Words.Add(new Word
+                {
+                    Text = word.Trim(),
+                    CategoryId = category.Id
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            created++;
+        }
+
+        return (created, failed, errors);
     }
 }

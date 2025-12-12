@@ -116,3 +116,19 @@ export interface UpdateCategoryRequest {
   name: string;
   words: string[];
 }
+
+// === Import Categories ===
+export interface ImportCategoryItem {
+  name: string;
+  words: string[];
+}
+
+export interface ImportCategoriesRequest {
+  categories: ImportCategoryItem[];
+}
+
+export interface ImportResult {
+  created: number;
+  failed: number;
+  errors: string[];
+}

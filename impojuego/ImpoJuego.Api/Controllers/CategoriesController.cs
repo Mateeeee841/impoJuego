@@ -188,4 +188,34 @@ public class CategoriesController : ControllerBase
 
         return Ok(new ApiResponse<object>(true, "Estado de la categoría actualizado", null));
     }
+
+    // POST /api/categories/import - Importar múltiples categorías desde JSON
+    [Authorize]
+    [HttpPost("import")]
+    public async Task<IActionResult> ImportCategories([FromBody] ImportCategoriesRequest request)
+    {
+        var (userId, _) = GetUserInfo();
+
+        if (!userId.HasValue)
+            return Unauthorized(new ApiResponse<object>(false, "Usuario no autenticado", null));
+
+        if (request.Categories == null || request.Categories.Count == 0)
+            return BadRequest(new ApiResponse<object>(false, "No se proporcionaron categorías", null));
+
+        var categoriesData = request.Categories
+            .Select(c => (c.Name, c.Words))
+            .ToList();
+
+        var (created, failed, errors) = await _categoryService.ImportCategoriesAsync(categoriesData, userId.Value);
+
+        var message = $"{created} categoría(s) creada(s)";
+        if (failed > 0)
+            message += $", {failed} fallida(s)";
+
+        return Ok(new ApiResponse<ImportResultDto>(
+            true,
+            message,
+            new ImportResultDto(created, failed, errors)
+        ));
+    }
 }
