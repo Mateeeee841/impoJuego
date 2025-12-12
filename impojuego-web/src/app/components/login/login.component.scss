@@ -123,6 +123,9 @@ $white-ghost: #e0e0e0;
     justify-content: center;
     gap: 0.75rem;
     margin-top: 1.5rem;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 48px;
 
     .btn-icon {
       width: 16px;
@@ -174,9 +177,12 @@ $white-ghost: #e0e0e0;
     color: $cyan-cold;
     cursor: pointer;
     font-family: 'Oxanium', sans-serif;
-    font-size: 0.9rem;
+    font-size: 1rem;
     margin-left: 0.5rem;
+    padding: 0.5rem 1rem;
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 
     &:hover {
       color: $purple-bright;
@@ -215,5 +221,23 @@ $white-ghost: #e0e0e0;
 
   .login-card {
     padding: 1.5rem !important;
+  }
+}
+
+// Touch device active states
+@media (pointer: coarse) {
+  .submit-btn:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  .toggle-btn:active {
+    color: $purple-bright !important;
+    transform: scale(0.95);
+  }
+
+  .skip-link:active {
+    color: $cyan-cold;
+    transform: scale(0.98);
   }
 }

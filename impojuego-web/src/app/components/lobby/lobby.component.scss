@@ -63,6 +63,7 @@ $white-ghost: #e0e0e0;
     align-items: center;
     gap: 0.35rem;
     padding: 0.5rem 0.75rem;
+    min-height: 44px;
     background: transparent;
     border: 1px solid $gray-metal;
     border-radius: 6px;
@@ -72,6 +73,8 @@ $white-ghost: #e0e0e0;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 
     .icon {
       font-size: 0.9rem;
@@ -99,6 +102,28 @@ $white-ghost: #e0e0e0;
         border-color: $red-blood;
         background: rgba($red-blood, 0.1);
       }
+    }
+  }
+}
+
+// Touch active states for auth nav
+@media (pointer: coarse) {
+  .nav-btn:active {
+    transform: scale(0.95);
+
+    &.login-btn {
+      border-color: $cyan-cold;
+      color: $cyan-cold;
+    }
+
+    &.categories-btn {
+      border-color: $purple-bright;
+      color: $purple-bright;
+    }
+
+    &.logout-btn {
+      border-color: $red-blood;
+      background: rgba($red-blood, 0.1);
     }
   }
 }
