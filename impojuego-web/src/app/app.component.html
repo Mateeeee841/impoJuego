@@ -1,1 +1,8 @@
-<router-outlet />
+@if (isLoading) {
+  <div class="app-loading">
+    <div class="impostor-loader"></div>
+    <p>Cargando...</p>
+  </div>
+} @else {
+  <router-outlet />
+}

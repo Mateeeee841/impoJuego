@@ -4,3 +4,20 @@
   min-height: 100vh;
   position: relative;
 }
+
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1.5rem;
+
+  p {
+    color: #8a8a9a;
+    font-family: 'Oxanium', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+}

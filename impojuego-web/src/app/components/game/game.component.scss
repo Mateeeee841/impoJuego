@@ -930,3 +930,134 @@ $white-ghost: #e0e0e0;
     transform: scale(0.95);
   }
 }
+
+// End Game Button - Fixed position
+.end-game-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: rgba($black-deep, 0.9);
+  border: 2px solid $gray-metal;
+  border-radius: 50%;
+  color: $gray-light;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  // iOS Safari fixes
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &:hover {
+    border-color: $red-blood;
+    color: $red-glow;
+    background: rgba($red-blood, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+// End Game Modal
+.end-game-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba($black-deep, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  animation: fade-in 0.2s ease;
+}
+
+.end-game-modal {
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(145deg, $black-card 0%, $black-deep 100%);
+  border: 2px solid $red-blood;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+
+  .end-game-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    background: rgba($red-blood, 0.2);
+    border: 2px solid $red-blood;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: $red-glow;
+  }
+
+  h2 {
+    color: $red-glow;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: $gray-light;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .warning-text {
+    color: $red-glow;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .end-game-actions {
+    display: flex;
+    gap: 1rem;
+
+    button {
+      flex: 1;
+      min-height: 48px;
+      padding: 0.875rem 1rem;
+
+      // iOS Safari fixes
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+
+    .end-confirm-btn {
+      background: linear-gradient(135deg, $red-blood 0%, darken($red-blood, 10%) 100%) !important;
+      border-color: $red-blood !important;
+
+      &:hover:not(:disabled) {
+        box-shadow: 0 0 20px rgba($red-glow, 0.5) !important;
+      }
+    }
+  }
+}

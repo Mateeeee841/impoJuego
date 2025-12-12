@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { GameService } from '../../services/game.service';
+import { GameStateService } from '../../services/game-state.service';
 import { GameState, Player, RoundResult } from '../../models';
 
 @Component({
@@ -11,35 +13,76 @@ import { GameState, Player, RoundResult } from '../../models';
   templateUrl: './voting.component.html',
   styleUrl: './voting.component.scss'
 })
-export class VotingComponent implements OnInit {
+export class VotingComponent implements OnInit, OnDestroy {
   gameState: GameState | null = null;
   currentVoterIndex = 0;
   votes: Map<string, string | null> = new Map(); // voter -> target (null = skip)
   roundResult: RoundResult | null = null;
   loading = false;
   error = '';
+  showEndGameConfirm = false;
+
+  private stateSubscription: Subscription | null = null;
 
   constructor(
     private gameService: GameService,
+    private gameStateService: GameStateService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    // Suscribirse a cambios de estado
+    this.stateSubscription = this.gameStateService.getState().subscribe(state => {
+      if (state) {
+        this.gameState = state;
+        this.handlePhaseChange(state);
+      }
+    });
+
     this.loadGameState();
   }
 
+  ngOnDestroy(): void {
+    if (this.stateSubscription) {
+      this.stateSubscription.unsubscribe();
+    }
+  }
+
+  private handlePhaseChange(state: GameState): void {
+    if (state.phase === 'Lobby') {
+      this.router.navigate(['/lobby']);
+    } else if (state.phase === 'RoleReveal' || state.phase === 'Discussion') {
+      this.router.navigate(['/game']);
+    } else if (state.phase === 'Finished') {
+      this.router.navigate(['/result']);
+    }
+  }
+
   loadGameState(): void {
-    this.gameService.getGameState().subscribe({
+    this.gameStateService.refreshState().subscribe({
       next: (state) => {
-        this.gameState = state;
-        if (state.phase === 'Finished') {
-          this.router.navigate(['/result']);
-        } else if (state.phase !== 'Voting') {
-          this.router.navigate(['/game']);
+        if (state) {
+          this.gameState = state;
+          this.handlePhaseChange(state);
         }
       },
       error: () => this.error = 'Error al cargar estado'
     });
+  }
+
+  // === END GAME ===
+
+  showEndGameModal(): void {
+    this.showEndGameConfirm = true;
+  }
+
+  cancelEndGame(): void {
+    this.showEndGameConfirm = false;
+  }
+
+  async confirmEndGame(): Promise<void> {
+    this.showEndGameConfirm = false;
+    await this.gameStateService.endGame();
   }
 
   get currentVoter(): Player | null {

@@ -1,20 +1,30 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
+import { GameStateService } from './services/game-state.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'impojuego-web';
+  isLoading = true;
   private shakeInterval: any;
   private particleInterval: any;
   private isTouchDevice = false;
+  private initialSyncDone = false;
 
-  ngOnInit(): void {
+  constructor(
+    private gameStateService: GameStateService,
+    private router: Router
+  ) {}
+
+  async ngOnInit(): Promise<void> {
     this.isTouchDevice = this.detectTouchDevice();
 
     if (!this.isTouchDevice) {
@@ -23,6 +33,43 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.initParticles();
     this.initScreenShake();
+
+    // Sincronizar estado del juego al cargar
+    await this.syncGameState();
+
+    // Escuchar cambios de ruta para iniciar/detener polling
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.handleRouteChange(event.url);
+    });
+  }
+
+  private async syncGameState(): Promise<void> {
+    try {
+      // Cargar estado actual del servidor
+      const state = await this.gameStateService.refreshState().toPromise();
+
+      if (state && state.phase !== 'Lobby') {
+        // Si hay un juego en progreso, redirigir a la fase correcta
+        this.gameStateService.navigateToCurrentPhase(state);
+      }
+    } catch (err) {
+      console.error('Error syncing game state:', err);
+    } finally {
+      this.isLoading = false;
+      this.initialSyncDone = true;
+    }
+  }
+
+  private handleRouteChange(url: string): void {
+    // Iniciar polling en rutas de juego activo
+    const activeGameRoutes = ['/game', '/voting'];
+    if (activeGameRoutes.some(route => url.startsWith(route))) {
+      this.gameStateService.startPolling();
+    } else {
+      this.gameStateService.stopPolling();
+    }
   }
 
   private detectTouchDevice(): boolean {

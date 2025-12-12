@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { GameService } from '../../services/game.service';
+import { GameStateService } from '../../services/game-state.service';
 import { GameState, PlayerRole } from '../../models';
 
 @Component({
@@ -12,40 +14,79 @@ import { GameState, PlayerRole } from '../../models';
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss'
 })
-export class GameComponent implements OnInit {
+export class GameComponent implements OnInit, OnDestroy {
   gameState: GameState | null = null;
   currentPlayerName = '';
   revealedRole: PlayerRole | null = null;
   playersRevealed: Set<string> = new Set();
   showRole = false;
   showConfirmation = false;
+  showEndGameConfirm = false;
   selectedPlayer: string | null = null;
   loading = false;
   error = '';
 
+  private stateSubscription: Subscription | null = null;
+
   constructor(
     private gameService: GameService,
+    private gameStateService: GameStateService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    // Suscribirse a cambios de estado
+    this.stateSubscription = this.gameStateService.getState().subscribe(state => {
+      if (state) {
+        this.gameState = state;
+        this.handlePhaseChange(state);
+      }
+    });
+
     this.loadGameState();
   }
 
+  ngOnDestroy(): void {
+    if (this.stateSubscription) {
+      this.stateSubscription.unsubscribe();
+    }
+  }
+
+  private handlePhaseChange(state: GameState): void {
+    if (state.phase === 'Lobby') {
+      this.router.navigate(['/lobby']);
+    } else if (state.phase === 'Voting') {
+      this.router.navigate(['/voting']);
+    } else if (state.phase === 'Finished') {
+      this.router.navigate(['/result']);
+    }
+  }
+
   loadGameState(): void {
-    this.gameService.getGameState().subscribe({
+    this.gameStateService.refreshState().subscribe({
       next: (state) => {
-        this.gameState = state;
-        if (state.phase === 'Lobby') {
-          this.router.navigate(['/lobby']);
-        } else if (state.phase === 'Voting') {
-          this.router.navigate(['/voting']);
-        } else if (state.phase === 'Finished') {
-          this.router.navigate(['/result']);
+        if (state) {
+          this.gameState = state;
+          this.handlePhaseChange(state);
         }
       },
       error: () => this.error = 'Error al cargar estado del juego'
     });
+  }
+
+  // === END GAME ===
+
+  showEndGameModal(): void {
+    this.showEndGameConfirm = true;
+  }
+
+  cancelEndGame(): void {
+    this.showEndGameConfirm = false;
+  }
+
+  async confirmEndGame(): Promise<void> {
+    this.showEndGameConfirm = false;
+    await this.gameStateService.endGame();
   }
 
   // Seleccionar jugador y mostrar confirmación

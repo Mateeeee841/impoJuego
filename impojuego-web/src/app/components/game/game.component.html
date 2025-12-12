@@ -1,4 +1,9 @@
 <div class="game-container page-enter">
+  <!-- End Game Button - Always visible -->
+  <button type="button" class="end-game-btn" (click)="showEndGameModal()" title="Terminar Partida">
+    ✕
+  </button>
+
   <!-- Error -->
   @if (error) {
     <div class="error-alert">
@@ -220,6 +225,26 @@
     <div class="loading-state">
       <div class="impostor-loader"></div>
       <p class="font-oxanium">Cargando estado del juego...</p>
+    </div>
+  }
+
+  <!-- End Game Confirmation Modal -->
+  @if (showEndGameConfirm) {
+    <div class="end-game-overlay" (click)="cancelEndGame()">
+      <div class="end-game-modal card-enter" (click)="$event.stopPropagation()">
+        <div class="end-game-icon">⚠</div>
+        <h2 class="font-orbitron">Terminar Partida</h2>
+        <p>¿Estás seguro de que querés terminar la partida actual?</p>
+        <p class="warning-text">Se perderá todo el progreso y los jugadores.</p>
+        <div class="end-game-actions">
+          <button type="button" class="impostor-btn-secondary" (click)="cancelEndGame()">
+            Cancelar
+          </button>
+          <button type="button" class="impostor-btn end-confirm-btn" (click)="confirmEndGame()">
+            Sí, Terminar
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

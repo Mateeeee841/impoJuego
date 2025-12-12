@@ -1,4 +1,9 @@
 <div class="result-container page-enter">
+  <!-- End Game Button - Always visible -->
+  <button type="button" class="end-game-btn" (click)="showEndGameModal()" title="Volver al Lobby">
+    ✕
+  </button>
+
   <!-- Error -->
   @if (error) {
     <div class="error-alert">
@@ -111,6 +116,26 @@
     <div class="loading-state">
       <div class="impostor-loader"></div>
       <p class="font-oxanium">Calculando resultado final...</p>
+    </div>
+  }
+
+  <!-- End Game Confirmation Modal -->
+  @if (showEndGameConfirm) {
+    <div class="end-game-overlay" (click)="cancelEndGame()">
+      <div class="end-game-modal card-enter" (click)="$event.stopPropagation()">
+        <div class="end-game-icon">⚠</div>
+        <h2 class="font-orbitron">Volver al Lobby</h2>
+        <p>¿Querés volver al lobby y reiniciar la partida?</p>
+        <p class="warning-text">Se borrarán los jugadores actuales.</p>
+        <div class="end-game-actions">
+          <button type="button" class="impostor-btn-secondary" (click)="cancelEndGame()">
+            Cancelar
+          </button>
+          <button type="button" class="impostor-btn end-confirm-btn" (click)="confirmEndGame()">
+            Sí, Volver
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

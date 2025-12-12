@@ -18,6 +18,120 @@ $white-ghost: #e0e0e0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: relative;
+}
+
+// End Game Button
+.end-game-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: rgba($black-card, 0.9);
+  border: 2px solid $red-blood;
+  color: $red-blood;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+
+  &:hover {
+    background: $red-blood;
+    color: white;
+    box-shadow: 0 0 20px rgba($red-blood, 0.5);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// End Game Modal
+.end-game-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.end-game-modal {
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  border: 2px solid $red-blood;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 40px rgba($red-blood, 0.3);
+
+  .end-game-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: warning-pulse 1s ease-in-out infinite;
+  }
+
+  h2 {
+    color: $red-glow;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: $gray-light;
+    margin-bottom: 0.5rem;
+
+    &.warning-text {
+      color: $red-blood;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  .end-game-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+
+    button {
+      flex: 1;
+      min-height: 48px;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+
+    .end-confirm-btn {
+      background: linear-gradient(135deg, $red-blood 0%, darken($red-blood, 10%) 100%);
+      border-color: $red-glow;
+
+      &:hover {
+        box-shadow: 0 0 20px rgba($red-glow, 0.5);
+      }
+    }
+  }
+}
+
+@keyframes warning-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 // Error alert
