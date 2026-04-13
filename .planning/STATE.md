@@ -41,6 +41,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-13)
 
 ## Blockers/Concerns
 
+- **SPA fallback requiere paso manual en Render**: el deep link `/voting`, `/game`, `/result` devuelve 404 hasta que se haga UNA de estas opciones:
+  - **A** (1 min, UI): Dashboard → `impojuego-web` → Redirects/Rewrites → Add rule `Source: /*  Destination: /index.html  Action: Rewrite`
+  - **B** (requiere conectar blueprint): Dashboard → Blueprints → Sync → aplica `routes` de `render.yaml`
+  - Render NO soporta archivo `_redirects` estilo Netlify (se probó y no aplica).
 - **Data persistence**: `/tmp/impojuego.db` es efímero. Phase 3 debe elegir: Render disk (paid) o Postgres free tier.
 - **render.yaml no sincronizado**: cambios de env vars o servicios nuevos requieren sync manual en dashboard (Blueprints → Sync).
 - **Sesiones in-memory**: si el backend se recicla (free tier duerme tras 15 min idle), partidas activas se pierden. Phase 5/3.

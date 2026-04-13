@@ -1,4 +1,0 @@
-# Render SPA fallback — todas las rutas no-asset devuelven index.html
-# para que Angular Router maneje client-side routing.
-/api/*   https://impojuego-1.onrender.com/api/:splat   200
-/*       /index.html                                    200

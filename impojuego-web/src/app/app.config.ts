@@ -14,5 +14,5 @@ export const appConfig: ApplicationConfig = {
 };
 export const CONFIG = {
   apiUrl: 'https://impojuego-1.onrender.com/api/game'
-  //'http://localhost:5000/api/game para correr local
+  // apiUrl: 'http://localhost:5000/api/game' // para correr local
 }; 
