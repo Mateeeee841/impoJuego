@@ -212,4 +212,57 @@ public class GameSessionManagerTests : IDisposable
         // La sesión no debería expirar porque la tocamos recientemente
         manager.ActiveSessionCount.Should().BeGreaterThanOrEqualTo(0);
     }
+
+    // === Multi-session concurrency ===
+    // Simula el caso real: varios dispositivos (celus distintos) jugando partidas
+    // simultáneas contra el mismo backend. Valida que el estado de una sesión
+    // nunca contamina el de otra bajo carga concurrente.
+
+    [Fact]
+    public async Task ManySessions_ConcurrentRegistration_ShouldStayIsolated()
+    {
+        const int sessionCount = 50;
+        const int playersPerSession = 6;
+
+        var tasks = Enumerable.Range(0, sessionCount).Select(i => Task.Run(() =>
+        {
+            var sessionId = $"device-{i}";
+            var session = _manager.GetOrCreateSession(sessionId);
+
+            for (int p = 0; p < playersPerSession; p++)
+            {
+                session.Game.RegisterPlayer($"s{i}-player{p}");
+            }
+
+            return (sessionId, session);
+        })).ToArray();
+
+        await Task.WhenAll(tasks);
+
+        _manager.ActiveSessionCount.Should().Be(sessionCount);
+
+        // Cada sesión tiene exactamente sus jugadores y ninguno del vecino
+        foreach (var (sessionId, session) in tasks.Select(t => t.Result))
+        {
+            session.Game.Players.Count.Should().Be(playersPerSession);
+            session.Game.Players.Players.Select(p => p.Name)
+                .Should().OnlyContain(name => name.StartsWith(sessionId.Replace("device-", "s") + "-"));
+        }
+    }
+
+    [Fact]
+    public void GetOrCreateSession_CalledConcurrentlyWithSameId_ReturnsSameInstance()
+    {
+        const int threadCount = 20;
+        var sessions = new GameSession[threadCount];
+
+        Parallel.For(0, threadCount, i =>
+        {
+            sessions[i] = _manager.GetOrCreateSession("shared-id");
+        });
+
+        // ConcurrentDictionary.GetOrAdd garantiza una sola instancia
+        sessions.Should().OnlyContain(s => ReferenceEquals(s, sessions[0]));
+        _manager.ActiveSessionCount.Should().Be(1);
+    }
 }
