@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, Subscription, interval, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, timer, of } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { GameService } from './game.service';
 import { GameState, GamePhase } from '../models';
@@ -18,12 +18,14 @@ export interface StoredGameState {
 export class GameStateService implements OnDestroy {
   private readonly STORAGE_KEY = 'impojuego_game_state';
   private readonly PLAYER_KEY = 'impojuego_player_name';
-  private readonly POLL_INTERVAL = 3000; // 3 segundos
+  private readonly POLL_MIN_INTERVAL = 3000;   // 3s: arranque y post-éxito
+  private readonly POLL_MAX_INTERVAL = 30000;  // 30s: techo con backoff exponencial
 
   private gameState$ = new BehaviorSubject<GameState | null>(null);
   private isPolling = false;
   private pollSubscription: Subscription | null = null;
   private currentPlayerName: string | null = null;
+  private currentPollInterval = this.POLL_MIN_INTERVAL;
 
   constructor(
     private gameService: GameService,
@@ -68,31 +70,42 @@ export class GameStateService implements OnDestroy {
   // === STATE MANAGEMENT ===
 
   /**
-   * Carga el estado del servidor y actualiza el BehaviorSubject
+   * Carga el estado del servidor y actualiza el BehaviorSubject.
+   * Resetea el intervalo de polling en éxito y lo duplica en error (hasta un techo).
    */
   refreshState(): Observable<GameState | null> {
     return this.gameService.getGameState().pipe(
       tap(state => {
         this.gameState$.next(state);
         this.saveStateToStorage(state);
+        this.currentPollInterval = this.POLL_MIN_INTERVAL; // reset backoff
       }),
       catchError(err => {
         console.error('Error refreshing game state:', err);
+        // Backoff exponencial con techo
+        this.currentPollInterval = Math.min(this.currentPollInterval * 2, this.POLL_MAX_INTERVAL);
         return of(null);
       })
     );
   }
 
   /**
-   * Inicia el polling automático del estado
+   * Inicia el polling automático con backoff exponencial en errores.
+   * Usa timer + re-programación para respetar el intervalo dinámico.
    */
   startPolling(): void {
     if (this.isPolling) return;
 
     this.isPolling = true;
-    this.pollSubscription = interval(this.POLL_INTERVAL).pipe(
+    this.currentPollInterval = this.POLL_MIN_INTERVAL;
+    this.scheduleNextPoll();
+  }
+
+  private scheduleNextPoll(): void {
+    if (!this.isPolling) return;
+    this.pollSubscription = timer(this.currentPollInterval).pipe(
       switchMap(() => this.refreshState())
-    ).subscribe();
+    ).subscribe(() => this.scheduleNextPoll());
   }
 
   /**

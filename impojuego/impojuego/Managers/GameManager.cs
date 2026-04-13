@@ -33,6 +33,11 @@ public class GameManager
 {
     private readonly Random _random = new();
 
+    // Lock para serializar mutaciones al estado del juego dentro de una misma sesión.
+    // Sesiones distintas tienen distintos GameManager (ver GameSessionManager) así que
+    // NO se bloquean entre sí — solo requests concurrentes en la MISMA partida.
+    private readonly object _stateLock = new();
+
     public PlayerManager Players { get; }
     public VotingManager Voting { get; }
     public GameSettings Settings { get; }
@@ -54,13 +59,16 @@ public class GameManager
     /// </summary>
     public (bool Success, string Message) RegisterPlayer(string name)
     {
-        if (CurrentPhase != GamePhase.Lobby)
-            return (false, "Solo se pueden registrar jugadores en el lobby");
+        lock (_stateLock)
+        {
+            if (CurrentPhase != GamePhase.Lobby)
+                return (false, "Solo se pueden registrar jugadores en el lobby");
 
-        if (Players.Count >= Settings.MaxPlayers)
-            return (false, $"Máximo de jugadores alcanzado ({Settings.MaxPlayers})");
+            if (Players.Count >= Settings.MaxPlayers)
+                return (false, $"Máximo de jugadores alcanzado ({Settings.MaxPlayers})");
 
-        return Players.RegisterPlayer(name);
+            return Players.RegisterPlayer(name);
+        }
     }
 
     /// <summary>
@@ -80,33 +88,36 @@ public class GameManager
     /// </summary>
     public (bool Success, string Message) StartGame(Dictionary<string, List<string>> categories)
     {
-        if (CurrentPhase != GamePhase.Lobby)
-            return (false, "El juego ya está en curso");
+        lock (_stateLock)
+        {
+            if (CurrentPhase != GamePhase.Lobby)
+                return (false, "El juego ya está en curso");
 
-        if (Players.Count < Settings.MinPlayers)
-            return (false, $"Se necesitan al menos {Settings.MinPlayers} jugadores");
+            if (Players.Count < Settings.MinPlayers)
+                return (false, $"Se necesitan al menos {Settings.MinPlayers} jugadores");
 
-        if (categories == null || categories.Count == 0)
-            return (false, "No hay categorías disponibles. Activá al menos una categoría.");
+            if (categories == null || categories.Count == 0)
+                return (false, "No hay categorías disponibles. Activá al menos una categoría.");
 
-        // Seleccionar categoría y palabra de las categorías proporcionadas
-        var categoryNames = categories.Keys.ToList();
-        CurrentCategory = categoryNames[_random.Next(categoryNames.Count)];
+            // Seleccionar categoría y palabra de las categorías proporcionadas
+            var categoryNames = categories.Keys.ToList();
+            CurrentCategory = categoryNames[_random.Next(categoryNames.Count)];
 
-        var words = categories[CurrentCategory];
-        if (words == null || words.Count == 0)
-            return (false, $"La categoría '{CurrentCategory}' no tiene palabras.");
+            var words = categories[CurrentCategory];
+            if (words == null || words.Count == 0)
+                return (false, $"La categoría '{CurrentCategory}' no tiene palabras.");
 
-        CurrentWord = words[_random.Next(words.Count)];
+            CurrentWord = words[_random.Next(words.Count)];
 
-        // Asignar roles
-        int impostorCount = Settings.GetImpostorCount(_random, Players.Count);
-        Players.AssignRoles(impostorCount, _random);
+            // Asignar roles
+            int impostorCount = Settings.GetImpostorCount(_random, Players.Count);
+            Players.AssignRoles(impostorCount, _random);
 
-        CurrentPhase = GamePhase.RoleReveal;
-        RoundNumber = 1;
+            CurrentPhase = GamePhase.RoleReveal;
+            RoundNumber = 1;
 
-        return (true, $"Partida iniciada - Categoría: {CurrentCategory}");
+            return (true, $"Partida iniciada - Categoría: {CurrentCategory}");
+        }
     }
 
     /// <summary>
@@ -137,7 +148,10 @@ public class GameManager
     /// </summary>
     public void StartDiscussion()
     {
-        CurrentPhase = GamePhase.Discussion;
+        lock (_stateLock)
+        {
+            CurrentPhase = GamePhase.Discussion;
+        }
     }
 
     /// <summary>
@@ -145,8 +159,11 @@ public class GameManager
     /// </summary>
     public void StartVoting()
     {
-        CurrentPhase = GamePhase.Voting;
-        Voting.ResetVotes();
+        lock (_stateLock)
+        {
+            CurrentPhase = GamePhase.Voting;
+            Voting.ResetVotes();
+        }
     }
 
     /// <summary>
@@ -154,44 +171,56 @@ public class GameManager
     /// </summary>
     public (VoteResult VoteResult, GameResult GameStatus, string Message) ProcessVotingResult()
     {
-        var voteResult = Voting.TallyVotes();
-        string message;
+        lock (_stateLock)
+        {
+            var voteResult = Voting.TallyVotes();
+            string message;
 
-        if (voteResult.WasTie)
-        {
-            message = "Empate en la votación. Nadie es eliminado.";
-        }
-        else if (voteResult.EliminatedPlayer == null)
-        {
-            message = "La mayoría votó skip. Nadie es eliminado.";
-        }
-        else
-        {
-            var eliminated = voteResult.EliminatedPlayer;
-            var wasImpostor = eliminated.Role == GameRole.Impostor;
-            message = $"{eliminated.Name} fue eliminado. " +
-                      (wasImpostor ? "¡Era IMPOSTOR!" : "Era inocente...");
-        }
+            if (voteResult.WasTie)
+            {
+                message = "Empate en la votación. Nadie es eliminado.";
+            }
+            else if (voteResult.EliminatedPlayer == null)
+            {
+                message = "La mayoría votó skip. Nadie es eliminado.";
+            }
+            else
+            {
+                var eliminated = voteResult.EliminatedPlayer;
+                var wasImpostor = eliminated.Role == GameRole.Impostor;
+                message = $"{eliminated.Name} fue eliminado. " +
+                          (wasImpostor ? "¡Era IMPOSTOR!" : "Era inocente...");
+            }
 
-        var gameStatus = CheckWinCondition();
+            var gameStatus = CheckWinConditionInternal();
 
-        if (gameStatus == GameResult.InProgress)
-        {
-            RoundNumber++;
-            CurrentPhase = GamePhase.Discussion;
-        }
-        else
-        {
-            CurrentPhase = GamePhase.Finished;
-        }
+            if (gameStatus == GameResult.InProgress)
+            {
+                RoundNumber++;
+                CurrentPhase = GamePhase.Discussion;
+            }
+            else
+            {
+                CurrentPhase = GamePhase.Finished;
+            }
 
-        return (voteResult, gameStatus, message);
+            return (voteResult, gameStatus, message);
+        }
     }
 
     /// <summary>
     /// Verifica las condiciones de victoria
     /// </summary>
     public GameResult CheckWinCondition()
+    {
+        lock (_stateLock)
+        {
+            return CheckWinConditionInternal();
+        }
+    }
+
+    // Versión interna sin lock — para uso dentro de otros métodos que ya tomaron el lock
+    private GameResult CheckWinConditionInternal()
     {
         var activeImpostors = Players.GetActiveImpostors().Count;
         var activeCrewmates = Players.GetActiveCrewmates().Count;
@@ -231,13 +260,16 @@ public class GameManager
     /// </summary>
     public void ResetGame()
     {
-        CurrentPhase = GamePhase.Lobby;
-        CurrentCategory = string.Empty;
-        CurrentWord = string.Empty;
-        RoundNumber = 0;
-        Voting.ResetVotes();
-        // Los jugadores se mantienen, solo se resetean sus estados
-        Players.ResetForNewGame();
+        lock (_stateLock)
+        {
+            CurrentPhase = GamePhase.Lobby;
+            CurrentCategory = string.Empty;
+            CurrentWord = string.Empty;
+            RoundNumber = 0;
+            Voting.ResetVotes();
+            // Los jugadores se mantienen, solo se resetean sus estados
+            Players.ResetForNewGame();
+        }
     }
 
     /// <summary>
@@ -245,8 +277,16 @@ public class GameManager
     /// </summary>
     public void FullReset()
     {
-        ResetGame();
-        Players.Clear();
+        lock (_stateLock)
+        {
+            CurrentPhase = GamePhase.Lobby;
+            CurrentCategory = string.Empty;
+            CurrentWord = string.Empty;
+            RoundNumber = 0;
+            Voting.ResetVotes();
+            Players.ResetForNewGame();
+            Players.Clear();
+        }
     }
 
     /// <summary>

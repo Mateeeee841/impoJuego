@@ -92,6 +92,16 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
+// HTTP request logging (observabilidad) — método + path + status + duration
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields =
+        Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestMethod |
+        Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestPath |
+        Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseStatusCode |
+        Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.Duration;
+});
+
 // Controllers
 builder.Services.AddControllers();
 
@@ -157,6 +167,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 // === MIDDLEWARE ===
+
+// Request logging antes del resto
+app.UseHttpLogging();
 
 // CORS debe ir antes de otros middlewares
 app.UseCors("Angular");
