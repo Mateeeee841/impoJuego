@@ -10,6 +10,10 @@ using ImpoJuego.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render asigna PORT dinámico via env var
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // === SERVICES ===
 
 // Configuración del juego
@@ -26,9 +30,14 @@ builder.Services.AddSingleton(gameSettings);
 builder.Services.AddSingleton<GameSessionManager>(sp =>
     new GameSessionManager(gameSettings, TimeSpan.FromHours(4)));
 
-// Database
+// Database — path configurable via env var DATABASE_PATH (Render: montar disco persistente)
+// Si no hay env var, usa el connection string de appsettings
+var dbPath = Environment.GetEnvironmentVariable("DATABASE_PATH");
+var connectionString = !string.IsNullOrWhiteSpace(dbPath)
+    ? $"Data Source={dbPath}"
+    : builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ImpoJuegoDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(connectionString));
 
 // JWT Settings
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
@@ -138,11 +147,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Health check para Render y monitoring
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
 // Info al iniciar
 Console.WriteLine("=================================");
 Console.WriteLine("  ImpoJuego API");
-Console.WriteLine("  http://localhost:5000");
-Console.WriteLine("  Swagger: http://localhost:5000");
+Console.WriteLine($"  Listening on :{port}");
+Console.WriteLine("  Swagger en la raíz /");
+Console.WriteLine("  Health en /health");
 Console.WriteLine("=================================");
 
 app.Run();

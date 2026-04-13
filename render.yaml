@@ -1,0 +1,50 @@
+# Render Blueprint — auto-deploy backend + frontend desde push a main
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # === Backend: ImpoJuego API (.NET 8) ===
+  - type: web
+    name: impojuego-1
+    runtime: docker
+    dockerfilePath: ./impojuego/Dockerfile
+    dockerContext: ./impojuego
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # ⚠️ Free plan: filesystem efímero, DB se pierde en cada redeploy.
+      # Para persistir: (a) upgrade plan + mount disk en /var/data y cambiar DATABASE_PATH,
+      # o (b) migrar a Render Postgres (Phase 3 del roadmap).
+      - key: DATABASE_PATH
+        value: /tmp/impojuego.db
+      # Secrets — setear manualmente en Render dashboard:
+      # - JWTSETTINGS__SECRET   (generar con: openssl rand -base64 64)
+      # - ADMIN_EMAIL           (opcional, email del admin inicial)
+      # - ADMIN_PASSWORD        (opcional, password del admin inicial)
+
+  # === Frontend: ImpoJuego Web (Angular 17) ===
+  - type: web
+    name: impojuego-web
+    runtime: static
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    buildCommand: cd impojuego-web && npm ci && npm run build
+    staticPublishPath: ./impojuego-web/dist/impojuego-web/browser
+    # SPA fallback — todas las rutas no-asset devuelven index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
