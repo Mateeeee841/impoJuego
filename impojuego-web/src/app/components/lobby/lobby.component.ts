@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { GameService } from '../../services/game.service';
+import { GameStateService } from '../../services/game-state.service';
 import { AuthService } from '../../services/auth.service';
 import { LobbyStatus } from '../../models';
 
@@ -21,6 +22,7 @@ export class LobbyComponent implements OnInit {
 
   constructor(
     private gameService: GameService,
+    private gameStateService: GameStateService,
     private router: Router,
     public authService: AuthService
   ) {}
@@ -66,9 +68,24 @@ export class LobbyComponent implements OnInit {
     if (!this.lobby?.canStart) return;
 
     this.loading = true;
+    this.error = '';
+
     this.gameService.startGame().subscribe({
       next: () => {
-        this.router.navigate(['/game']);
+        // CRÍTICO: refrescar gameState$ antes de navegar para que /game
+        // vea la fase fresca (RoleReveal) en lugar del cache viejo (Lobby)
+        // y NO se redirija de vuelta al lobby.
+        this.gameStateService.refreshState().subscribe({
+          next: () => {
+            this.loading = false;
+            this.router.navigate(['/game']);
+          },
+          error: () => {
+            // Incluso si falla el refresh, navegamos: /game llama loadGameState() en ngOnInit
+            this.loading = false;
+            this.router.navigate(['/game']);
+          }
+        });
       },
       error: (err) => {
         this.error = err.error?.message || 'Error al iniciar';

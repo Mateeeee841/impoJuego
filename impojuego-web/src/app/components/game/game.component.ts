@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { skip } from 'rxjs/operators';
 import { GameService } from '../../services/game.service';
 import { GameStateService } from '../../services/game-state.service';
 import { GameState, PlayerRole } from '../../models';
@@ -35,8 +36,10 @@ export class GameComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Suscribirse a cambios de estado
-    this.stateSubscription = this.gameStateService.getState().subscribe(state => {
+    // Skip(1): ignorar la emisión inicial del BehaviorSubject (puede tener estado
+    // viejo cacheado de una partida anterior). Solo reaccionar a CAMBIOS de estado
+    // posteriores al fetch fresco.
+    this.stateSubscription = this.gameStateService.getState().pipe(skip(1)).subscribe(state => {
       if (state) {
         this.gameState = state;
         this.handlePhaseChange(state);
