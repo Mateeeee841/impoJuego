@@ -17,35 +17,35 @@ Cada requirement deriva de un issue concreto de `.planning/codebase/CONCERNS.md`
 
 ### Config (CONFIG)
 
-- [ ] **CONFIG-01**: URL del backend centralizada en `environment.ts` / `environment.prod.ts` y leída vía Angular environment (CONCERNS #3)
-- [ ] **CONFIG-02**: JWT secret leído de env var `JWTSETTINGS__SECRET`, app aborta si falta en Production (CONCERNS #6)
-- [ ] **CONFIG-03**: Admin seed condicionado a env vars `ADMIN_EMAIL` + `ADMIN_PASSWORD`, skippea si faltan (CONCERNS #8)
-- [ ] **CONFIG-04**: `appsettings.Production.json` con log level Warning y settings prod-específicos (CONCERNS #12)
+- [x] **CONFIG-01**: URL del backend centralizada en `environment.ts` / `environment.prod.ts` y leída vía Angular environment (CONCERNS #3)
+- [x] **CONFIG-02**: JWT secret leído de env var `JWTSETTINGS__SECRET`, app aborta si falta en Production (CONCERNS #6)
+- [x] **CONFIG-03**: Admin seed condicionado a env vars `ADMIN_EMAIL` + `ADMIN_PASSWORD`, skippea si faltan (CONCERNS #8)
+- [x] **CONFIG-04**: `appsettings.Production.json` con log level Warning y settings prod-específicos (CONCERNS #12)
 
 ### Data (DATA)
 
-- [ ] **DATA-01**: EF Core migrations reemplazan `EnsureCreatedAsync`, startup corre `Database.Migrate()` (CONCERNS #7)
-- [ ] **DATA-02**: Sesiones persistidas (SQLite/Postgres-backed) o documentado que se pierden en redeploy (CONCERNS #16)
-- [ ] **DATA-03**: WordCategories cargadas desde `Data/defaultCategories.json` en vez de dictionary hardcoded (CONCERNS #20)
+- [x] **DATA-01**: EF Core migrations reemplazan `EnsureCreatedAsync`, startup corre `Database.Migrate()` (CONCERNS #7)
+- [x] **DATA-02**: Sesiones persistidas (SQLite/Postgres-backed) o documentado que se pierden en redeploy (CONCERNS #16)
+- [x] **DATA-03**: WordCategories cargadas desde `Data/defaultCategories.json` en vez de dictionary hardcoded (CONCERNS #20)
 
 ### Security (SEC)
 
-- [ ] **SEC-01**: CORS con `WithMethods("GET","POST","PUT","DELETE","OPTIONS")` — no `AllowAnyMethod` (CONCERNS #9)
-- [ ] **SEC-02**: Password mínimo 8 caracteres validado en `AuthService.RegisterAsync` (CONCERNS #11)
-- [ ] **SEC-03**: JWT audience/issuer validados correctamente con valores específicos (CONCERNS #10)
+- [x] **SEC-01**: CORS con `WithMethods("GET","POST","PUT","DELETE","OPTIONS")` — no `AllowAnyMethod` (CONCERNS #9)
+- [x] **SEC-02**: Password mínimo 8 caracteres validado en `AuthService.RegisterAsync` (CONCERNS #11)
+- [x] **SEC-03**: JWT audience/issuer validados correctamente con valores específicos (CONCERNS #10)
 
 ### Quality (QUAL)
 
-- [ ] **QUAL-01**: `ApiResponse<T>` uniforme en success y error (estructura consistente) (CONCERNS #13)
-- [ ] **QUAL-02**: Serilog configurado con sinks Console y request logging middleware (CONCERNS #14)
-- [ ] **QUAL-03**: `GameManager` thread-safe vía lock en métodos mutantes o sesiones aisladas por lock (CONCERNS #18)
-- [ ] **QUAL-04**: Frontend polling con backoff exponencial en `GameStateService` (CONCERNS #19)
-- [ ] **QUAL-05**: Tipos TypeScript regenerados desde backend con NSwag o mantenidos en sync (CONCERNS #15)
+- [ ] **QUAL-01**: `ApiResponse<T>` uniforme en success y error (estructura consistente) (CONCERNS #13) — **deferred a v2** (refactor grande, no bloquea funcionalidad)
+- [x] **QUAL-02**: HTTP request logging via `UseHttpLogging` built-in (CONCERNS #14) — Serilog puro deferred
+- [x] **QUAL-03**: `GameManager` thread-safe vía lock en métodos mutantes (CONCERNS #18)
+- [x] **QUAL-04**: Frontend polling con backoff exponencial en `GameStateService` (CONCERNS #19)
+- [ ] **QUAL-05**: Tipos TypeScript regenerados desde backend con NSwag (CONCERNS #15) — **deferred a v2** (setup extra, tipos actuales sincronizados a mano)
 
 ### Testing (TEST)
 
-- [ ] **TEST-01**: Frontend tests habilitados (`skipTests: false`), suite de smoke para `GameService`/`AuthService`/`SessionService` (CONCERNS #21)
-- [ ] **TEST-02**: Backend tests siguen pasando al 100% line coverage (no regresión)
+- [x] **TEST-01**: Frontend tests habilitados (`skipTests: false`), suite de smoke para `GameService`/`AuthService`/`SessionService` (CONCERNS #21)
+- [x] **TEST-02**: Backend tests siguen pasando al 100% line coverage (no regresión)
 
 ## v2 Requirements
 
