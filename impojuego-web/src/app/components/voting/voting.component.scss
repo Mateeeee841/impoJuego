@@ -398,22 +398,27 @@ $white-ghost: #e0e0e0;
       }
     }
 
-    &:hover:not(:disabled) {
-      border-color: $red-blood;
-      transform: translateY(-3px);
-      box-shadow: 0 5px 20px rgba($red-blood, 0.3);
+    // Hover styles SOLO en dispositivos que realmente soportan hover (desktop).
+    // En mobile, `:hover` queda "pegado" después de un tap y el overlay VOTAR
+    // quedaba trabado sobre el botón del siguiente votante.
+    @media (hover: hover) {
+      &:hover:not(:disabled) {
+        border-color: $red-blood;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba($red-blood, 0.3);
 
-      .suspect-avatar {
-        background: linear-gradient(180deg, $red-blood 0%, darken($red-blood, 10%) 100%);
+        .suspect-avatar {
+          background: linear-gradient(180deg, $red-blood 0%, darken($red-blood, 10%) 100%);
 
-        .visor-small {
-          background: $cyan-cold;
-          box-shadow: 0 0 10px $cyan-cold;
+          .visor-small {
+            background: $cyan-cold;
+            box-shadow: 0 0 10px $cyan-cold;
+          }
         }
-      }
 
-      .vote-overlay {
-        opacity: 1;
+        .vote-overlay {
+          opacity: 1;
+        }
       }
     }
 
