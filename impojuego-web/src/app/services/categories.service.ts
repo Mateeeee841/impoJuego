@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { ApiResponse, CategoryDetail, CreateCategoryRequest, UpdateCategoryRequest, ImportCategoriesRequest, ImportResult } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategoriesService {
-  private readonly baseUrl = 'https://impojuego-1.onrender.com/api';
-  // private readonly baseUrl = 'http://localhost:5000/api'; // Para desarrollo local
+  private readonly baseUrl = environment.apiBaseUrl;
 
   constructor(private http: HttpClient) {}
 

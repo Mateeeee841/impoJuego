@@ -19,25 +19,40 @@ public static class DbSeeder
 
     private static async Task SeedAdminUserAsync(ImpoJuegoDbContext context)
     {
-        if (await context.Users.AnyAsync(u => u.Email == "mateocirujas"))
+        // Admin se crea solo si hay ADMIN_EMAIL y ADMIN_PASSWORD en env vars.
+        // Sin env vars no se crea admin y el seed de categorías tampoco corre.
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+        {
+            Console.WriteLine("[DbSeeder] ADMIN_EMAIL/ADMIN_PASSWORD no seteados — admin seed saltado.");
+            return;
+        }
+
+        if (await context.Users.AnyAsync(u => u.Email == adminEmail))
             return;
 
         var adminUser = new User
         {
-            Email = "mateocirujas",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("mateo"),
+            Email = adminEmail,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
             Role = "Admin",
             CreatedAt = DateTime.UtcNow
         };
 
         context.Users.Add(adminUser);
         await context.SaveChangesAsync();
+        Console.WriteLine($"[DbSeeder] Admin creado: {adminEmail}");
     }
 
     private static async Task SeedSystemCategoriesAsync(ImpoJuegoDbContext context)
     {
-        // Obtener el admin para asignarle las categorías
-        var admin = await context.Users.FirstOrDefaultAsync(u => u.Email == "mateocirujas");
+        // Admin viene de env var. Si no hay admin, no se siembran categorías.
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        if (string.IsNullOrWhiteSpace(adminEmail)) return;
+
+        var admin = await context.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
         if (admin == null) return;
 
         // Si el admin ya tiene categorías, no hacer nada

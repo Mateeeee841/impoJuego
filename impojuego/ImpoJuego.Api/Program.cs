@@ -39,9 +39,17 @@ var connectionString = !string.IsNullOrWhiteSpace(dbPath)
 builder.Services.AddDbContext<ImpoJuegoDbContext>(options =>
     options.UseSqlite(connectionString));
 
-// JWT Settings
+// JWT Settings — Secret DEBE venir de env var JWTSETTINGS__SECRET en producción
+// (doble underscore = separador de sección en ASP.NET config). En Development se
+// lee de appsettings.Development.json. Sin secret: la app NO arranca.
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
-    ?? new JwtSettings { Secret = "DefaultSecretKeyForDevelopment12345678!" };
+    ?? new JwtSettings();
+if (string.IsNullOrWhiteSpace(jwtSettings.Secret) || jwtSettings.Secret.Length < 32)
+{
+    throw new InvalidOperationException(
+        "JWT secret no configurado o muy corto. Setear env var JWTSETTINGS__SECRET " +
+        "con al menos 32 caracteres. Generar con: openssl rand -base64 64");
+}
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 // Authentication
