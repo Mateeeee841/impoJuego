@@ -34,8 +34,8 @@ public class AuthService : IAuthService
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             return (null, "Email y contraseña son requeridos");
 
-        if (password.Length < 4)
-            return (null, "La contraseña debe tener al menos 4 caracteres");
+        if (password.Length < 8)
+            return (null, "La contraseña debe tener al menos 8 caracteres");
 
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         if (existingUser != null)

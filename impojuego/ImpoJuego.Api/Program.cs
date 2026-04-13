@@ -82,7 +82,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+        // Sin ClockSkew default (5 min): el token expirado deja de ser válido al instante
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -125,7 +127,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// CORS para Angular (localhost y producción)
+// CORS para Angular (localhost y producción) — métodos explícitos (no AllowAnyMethod)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
@@ -138,7 +140,7 @@ builder.Services.AddCors(options =>
             )
             .AllowAnyHeader()
             .WithExposedHeaders("X-Session-Id")
-            .AllowAnyMethod()
+            .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .AllowCredentials();
     });
 });
