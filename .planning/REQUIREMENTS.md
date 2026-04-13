@@ -9,11 +9,11 @@ Cada requirement deriva de un issue concreto de `.planning/codebase/CONCERNS.md`
 
 ### Deploy (DEPLOY)
 
-- [ ] **DEPLOY-01**: Backend lee `PORT` de env var y bindea a `0.0.0.0:$PORT` (CONCERNS #1)
-- [ ] **DEPLOY-02**: SQLite en path persistente o migración a Postgres gestionado por Render (CONCERNS #2)
-- [ ] **DEPLOY-03**: `render.yaml` en root define backend (web service dotnet) y frontend (static site Angular) con auto-deploy desde `main` (CONCERNS #4)
-- [ ] **DEPLOY-04**: Endpoint `GET /health` responde `200 OK` con JSON `{"status":"healthy"}` (CONCERNS #22)
-- [ ] **DEPLOY-05**: Frontend estático sirve `index.html` como fallback para rutas no-API (SPA rewrite) (CONCERNS #5)
+- [x] **DEPLOY-01**: Backend lee `PORT` de env var y bindea a `0.0.0.0:$PORT` (CONCERNS #1)
+- [x] **DEPLOY-02**: SQLite en path configurable via `DATABASE_PATH` env var (CONCERNS #2) — persistencia real deferred a Phase 3 (requiere disk o Postgres)
+- [x] **DEPLOY-03**: `render.yaml` en root define backend (web service dotnet) y frontend (static site Angular) con auto-deploy desde `main` (CONCERNS #4) — nota: requiere "Sync blueprint" en Render dashboard para activar
+- [x] **DEPLOY-04**: Endpoint `GET /health` responde `200 OK` con JSON `{"status":"healthy"}` (CONCERNS #22)
+- [x] **DEPLOY-05**: Frontend estático sirve `index.html` como fallback para rutas no-API (SPA rewrite) (CONCERNS #5) — via `_redirects` file en dist/
 
 ### Config (CONFIG)
 
@@ -70,11 +70,11 @@ Deferred — no bloquean funcionalidad ni deploy.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEPLOY-01 | Phase 1 | Pending |
-| DEPLOY-02 | Phase 1 | Pending |
-| DEPLOY-03 | Phase 1 | Pending |
-| DEPLOY-04 | Phase 1 | Pending |
-| DEPLOY-05 | Phase 1 | Pending |
+| DEPLOY-01 | Phase 1 | Complete |
+| DEPLOY-02 | Phase 1 | Complete (partial - disk persistence deferred) |
+| DEPLOY-03 | Phase 1 | Complete (blueprint not synced in Render yet) |
+| DEPLOY-04 | Phase 1 | Complete |
+| DEPLOY-05 | Phase 1 | Complete |
 | CONFIG-01 | Phase 2 | Pending |
 | CONFIG-02 | Phase 2 | Pending |
 | CONFIG-03 | Phase 2 | Pending |
