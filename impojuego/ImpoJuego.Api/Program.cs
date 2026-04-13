@@ -30,14 +30,38 @@ builder.Services.AddSingleton(gameSettings);
 builder.Services.AddSingleton<GameSessionManager>(sp =>
     new GameSessionManager(gameSettings, TimeSpan.FromHours(4)));
 
-// Database — path configurable via env var DATABASE_PATH (Render: montar disco persistente)
-// Si no hay env var, usa el connection string de appsettings
+// Database — selección de provider por env var:
+//   DATABASE_URL (Postgres, formato Neon: postgresql://user:pass@host/db?sslmode=require)
+//   DATABASE_PATH (SQLite file path; local dev o disco montado)
+//   default: SQLite desde appsettings ConnectionStrings:DefaultConnection
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 var dbPath = Environment.GetEnvironmentVariable("DATABASE_PATH");
-var connectionString = !string.IsNullOrWhiteSpace(dbPath)
-    ? $"Data Source={dbPath}"
-    : builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ImpoJuegoDbContext>(options =>
-    options.UseSqlite(connectionString));
+{
+    if (!string.IsNullOrWhiteSpace(databaseUrl))
+    {
+        // Neon provee URL tipo postgresql://user:pass@host:port/db?sslmode=require
+        // Npgsql espera formato Host=...;Username=... así que lo convertimos.
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var user = Uri.UnescapeDataString(userInfo[0]);
+        var pass = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+        var db = uri.AbsolutePath.TrimStart('/');
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        var sslMode = uri.Query.Contains("sslmode=disable") ? "Disable" : "Require";
+        var npgsql = $"Host={uri.Host};Port={port};Database={db};Username={user};Password={pass};SSL Mode={sslMode};Trust Server Certificate=true;";
+        options.UseNpgsql(npgsql);
+    }
+    else if (!string.IsNullOrWhiteSpace(dbPath))
+    {
+        options.UseSqlite($"Data Source={dbPath}");
+    }
+    else
+    {
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+});
 
 // JWT Settings — preferencia por env var JWTSETTINGS__SECRET (doble underscore = separador
 // de sección en ASP.NET config). Fallback seguro: en Production sin secret, se genera uno
@@ -158,11 +182,27 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // === DATABASE INITIALIZATION ===
-// Corre migrations pendientes y después siembra data de referencia.
+// Inicializa el schema según el provider:
+//  - SQLite: usa las migrations generadas (Data/Migrations/)
+//  - Postgres (Neon): EnsureCreated por ahora — migrations específicas de Postgres
+//    se pueden generar después con `dotnet ef migrations add ... --context ... `
+//    sin romper el flow de desarrollo local.
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ImpoJuegoDbContext>();
-    await dbContext.Database.MigrateAsync();
+    var providerName = dbContext.Database.ProviderName ?? "";
+
+    if (providerName.Contains("Npgsql", StringComparison.OrdinalIgnoreCase))
+    {
+        await dbContext.Database.EnsureCreatedAsync();
+        Console.WriteLine("[DB] Postgres schema asegurado via EnsureCreated");
+    }
+    else
+    {
+        await dbContext.Database.MigrateAsync();
+        Console.WriteLine("[DB] SQLite schema asegurado via Migrate");
+    }
+
     await DbSeeder.SeedDatabaseAsync(dbContext);
 }
 
