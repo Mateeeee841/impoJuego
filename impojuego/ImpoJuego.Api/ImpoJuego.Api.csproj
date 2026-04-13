@@ -18,4 +18,13 @@
     <ProjectReference Include="..\impojuego\impojuego.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- JSON seed files need to ship alongside the app binary.
+         Web SDK auto-includes them as Content; este Update solo agrega el Copy. -->
+    <Content Update="Data\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

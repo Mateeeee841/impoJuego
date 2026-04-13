@@ -39,16 +39,30 @@ var connectionString = !string.IsNullOrWhiteSpace(dbPath)
 builder.Services.AddDbContext<ImpoJuegoDbContext>(options =>
     options.UseSqlite(connectionString));
 
-// JWT Settings — Secret DEBE venir de env var JWTSETTINGS__SECRET en producción
-// (doble underscore = separador de sección en ASP.NET config). En Development se
-// lee de appsettings.Development.json. Sin secret: la app NO arranca.
+// JWT Settings — preferencia por env var JWTSETTINGS__SECRET (doble underscore = separador
+// de sección en ASP.NET config). Fallback seguro: en Production sin secret, se genera uno
+// random en runtime (con warning) para que el deploy no se caiga. Los tokens no sobreviven
+// al reinicio. En Development: falla fuerte si no hay secret en appsettings.Development.json.
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? new JwtSettings();
 if (string.IsNullOrWhiteSpace(jwtSettings.Secret) || jwtSettings.Secret.Length < 32)
 {
-    throw new InvalidOperationException(
-        "JWT secret no configurado o muy corto. Setear env var JWTSETTINGS__SECRET " +
-        "con al menos 32 caracteres. Generar con: openssl rand -base64 64");
+    if (builder.Environment.IsProduction())
+    {
+        var randomSecret = Convert.ToBase64String(
+            System.Security.Cryptography.RandomNumberGenerator.GetBytes(48));
+        jwtSettings.Secret = randomSecret;
+        builder.Configuration["JwtSettings:Secret"] = randomSecret;
+        Console.WriteLine("[WARN] JWTSETTINGS__SECRET no configurado en Production.");
+        Console.WriteLine("[WARN] Generado secret random runtime — tokens se pierden al reiniciar.");
+        Console.WriteLine("[WARN] Setear env var JWTSETTINGS__SECRET (32+ chars) en Render dashboard.");
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "JWT secret no configurado. En Development: setear en appsettings.Development.json. " +
+            "En Production: setear env var JWTSETTINGS__SECRET (32+ chars, gen: openssl rand -base64 64).");
+    }
 }
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
@@ -132,9 +146,11 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // === DATABASE INITIALIZATION ===
+// Corre migrations pendientes y después siembra data de referencia.
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ImpoJuegoDbContext>();
+    await dbContext.Database.MigrateAsync();
     await DbSeeder.SeedDatabaseAsync(dbContext);
 }
 
