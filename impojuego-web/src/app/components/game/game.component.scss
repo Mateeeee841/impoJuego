@@ -312,6 +312,9 @@ $white-ghost: #e0e0e0;
   justify-content: center;
   z-index: 1000;
   padding: 1.5rem;
+  // Respetar notch / home indicator en modo app (iOS standalone)
+  padding-top: calc(1.5rem + env(safe-area-inset-top));
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
   animation: fade-in 0.3s ease;
 }
 
@@ -529,6 +532,9 @@ $white-ghost: #e0e0e0;
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  // Respetar notch / home indicator en modo app (iOS standalone)
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   animation: fade-in 0.3s ease;
 }
 
@@ -934,8 +940,8 @@ $white-ghost: #e0e0e0;
 // End Game Button - Fixed position
 .end-game-btn {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: calc(1rem + env(safe-area-inset-top));
+  right: calc(1rem + env(safe-area-inset-right));
   width: 44px;
   height: 44px;
   min-width: 44px;
@@ -985,6 +991,9 @@ $white-ghost: #e0e0e0;
   justify-content: center;
   z-index: 2000;
   padding: 1rem;
+  // Respetar notch / home indicator en modo app (iOS standalone)
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   animation: fade-in 0.2s ease;
 }
 

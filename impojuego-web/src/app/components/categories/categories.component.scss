@@ -410,6 +410,9 @@ $green-active: #00ff88;
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  // Respetar notch / home indicator en modo app (iOS standalone)
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 .modal-content {

@@ -27,6 +27,13 @@ $white-ghost: #e0e0e0;
 html, body {
   height: 100%;
   overflow-x: hidden;
+  // Sin rebote elástico ni pull-to-refresh: se siente como app nativa
+  overscroll-behavior: none;
+}
+
+html {
+  background: $black-deep;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -35,6 +42,10 @@ body {
   color: $white-ghost;
   min-height: 100vh;
   position: relative;
+  // Modo standalone (pantalla de inicio iOS): el contenido va debajo de
+  // la barra de estado / notch y del home indicator
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 // === CUSTOM CURSOR (solo desktop) ===
